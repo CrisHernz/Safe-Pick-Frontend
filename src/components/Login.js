@@ -1,14 +1,51 @@
 import React, { useState } from 'react';
 import './Login.css';
 
+const API_URL = 'https://safe-pick.up.railway.app';
+
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Aquí irá la conexión con el backend
-    console.log('Login attempt:', { email, password });
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al iniciar sesión');
+      }
+
+      // Login exitoso - guardar token si existe
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      
+      console.log('Login exitoso:', data);
+      // Aquí puedes redirigir al usuario o actualizar el estado de la app
+      
+    } catch (err) {
+      setError(err.message || 'Error de conexión con el servidor');
+      console.error('Error en login:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -17,6 +54,8 @@ function Login() {
         <h1 className="login-title">SafePick</h1>
 
         <form onSubmit={handleSubmit} className="login-form">
+          {error && <div className="error-message">{error}</div>}
+          
           <div className="form-group">
             <label htmlFor="email">Correo electrónico</label>
             <input
@@ -26,6 +65,7 @@ function Login() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu@email.com"
               required
+              disabled={loading}
             />
           </div>
 
@@ -38,11 +78,12 @@ function Login() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" className="login-button">
-            Iniciar Sesión
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
 
