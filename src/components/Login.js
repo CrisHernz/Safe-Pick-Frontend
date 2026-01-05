@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
 const API_URL = 'https://safe-pick.up.railway.app';
@@ -8,6 +9,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +40,18 @@ function Login() {
       }
       
       console.log('Login exitoso:', data);
-      // Aquí puedes redirigir al usuario o actualizar el estado de la app
+      // Redirigir según el rol devuelto por el backend
+      const role = data?.user?.role;
+      const roleToPath = {
+        PADRE: '/dashboard/padre',
+        ENCARGADO: '/dashboard/encargado',
+        GUARDIA: '/dashboard/guardia',
+        ADMIN_ESCOLAR: '/dashboard/admin-escolar',
+        ADMIN: '/dashboard/admin',
+      };
+      if (role && roleToPath[role]) {
+        navigate(roleToPath[role]);
+      }
       
     } catch (err) {
       setError(err.message || 'Error de conexión con el servidor');
@@ -81,6 +94,8 @@ function Login() {
               disabled={loading}
             />
           </div>
+
+          
 
           <button type="submit" className="login-button" disabled={loading}>
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}

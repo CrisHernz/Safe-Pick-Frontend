@@ -1,0 +1,16 @@
+.dashboard-subtitle {
+  margin: 0 0 16px;
+  color: #333;
+  text-align: center;
+}
+
+.role-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  font-size: 0.85rem;
+}
