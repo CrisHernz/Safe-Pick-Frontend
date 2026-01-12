@@ -1,61 +1,44 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Login.css';
-
-const API_URL = 'https://safe-pick.up.railway.app';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import apiService from "../services/api.service";
+import authService from "../services/auth.service";
+import "./Login.css";
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      });
+      const data = await apiService.login(email, password);
 
-      const data = await response.json();
+      // Guardar datos de autenticación
+      authService.saveAuth(data);
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al iniciar sesión');
-      }
+      console.log("Login exitoso:", data);
 
-      // Login exitoso - guardar token si existe
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-      
-      console.log('Login exitoso:', data);
-      // Redirigir según el rol devuelto por el backend
+      // Redirigir según el rol
       const role = data?.user?.role;
       const roleToPath = {
-        PADRE: '/dashboard/padre',
-        ENCARGADO: '/dashboard/encargado',
-        GUARDIA: '/dashboard/guardia',
-        ADMIN_ESCOLAR: '/dashboard/admin-escolar',
-        ADMIN: '/dashboard/admin',
+        PADRE: "/dashboard/padre",
+        ENCARGADO: "/dashboard/encargado",
+        GUARDIA: "/dashboard/guardia",
+        ADMIN_ESCOLAR: "/dashboard/admin-escolar",
+        ADMIN: "/dashboard/admin",
       };
       if (role && roleToPath[role]) {
         navigate(roleToPath[role]);
       }
-      
     } catch (err) {
-      setError(err.message || 'Error de conexión con el servidor');
-      console.error('Error en login:', err);
+      setError(err.message || "Error de conexión con el servidor");
+      console.error("Error en login:", err);
     } finally {
       setLoading(false);
     }
@@ -68,7 +51,7 @@ function Login() {
 
         <form onSubmit={handleSubmit} className="login-form">
           {error && <div className="error-message">{error}</div>}
-          
+
           <div className="form-group">
             <label htmlFor="email">Correo electrónico</label>
             <input
@@ -95,10 +78,8 @@ function Login() {
             />
           </div>
 
-          
-
           <button type="submit" className="login-button" disabled={loading}>
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
         </form>
 
