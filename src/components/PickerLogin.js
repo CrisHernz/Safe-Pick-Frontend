@@ -26,7 +26,7 @@ function PickerLogin() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3001/auth/login-picker", {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/auth/login-picker`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

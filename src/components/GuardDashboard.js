@@ -79,7 +79,7 @@ function GuardDashboard() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        "http://localhost:3001/withdrawals/guardian/scan-and-complete",
+        `${API_CONFIG.BASE_URL}/withdrawals/guardian/scan-and-complete`,
         {
           method: "POST",
           headers: {

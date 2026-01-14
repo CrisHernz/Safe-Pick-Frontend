@@ -18,7 +18,7 @@ function PickerDashboard() {
       }
 
       const response = await fetch(
-        "http://localhost:3001/withdrawals/picker/my-order",
+        `${API_CONFIG.BASE_URL}/withdrawals/picker/my-order`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

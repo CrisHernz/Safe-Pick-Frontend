@@ -44,7 +44,7 @@ function QRScanner({ onScanSuccess, onScanError }) {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:3001/withdrawals/validate-qr",
+        `${API_CONFIG.BASE_URL}/withdrawals/validate-qr`,
         {
           method: "POST",
           headers: {
@@ -92,7 +92,7 @@ function QRScanner({ onScanSuccess, onScanError }) {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:3001/withdrawals/${validationData.order.id}/complete`,
+        `${API_CONFIG.BASE_URL}/withdrawals/${validationData.order.id}/complete`,
         {
           method: "POST",
           headers: {
