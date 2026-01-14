@@ -70,9 +70,6 @@
 .form-group label {
   font-size: 0.875rem;
   font-weight: 500;
-<<<<<<< Updated upstream
-  color: #333;
-=======
   color: #666;
   display: flex;
   align-items: center;
@@ -81,7 +78,6 @@
 
 .label-icon {
   font-size: 16px;
->>>>>>> Stashed changes
 }
 
 .form-group input {
@@ -138,12 +134,6 @@
   cursor: not-allowed;
 }
 
-<<<<<<< Updated upstream
-.login-footer {
-  text-align: center;
-  margin-top: 24px;
-  font-size: 0.875rem;
-=======
 .input-hint {
   font-size: 11px;
   color: #999;
@@ -220,7 +210,6 @@
 
 .login-footer {
   margin-top: 20px;
->>>>>>> Stashed changes
   color: #666;
 }
 
