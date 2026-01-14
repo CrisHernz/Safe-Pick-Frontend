@@ -1,437 +1,517 @@
-import React, { useState, useEffect } from "react";
-import Navbar from "../common/Navbar";
-import Card from "../common/Card";
-import StatCard from "../common/StatCard";
-import Modal from "../common/Modal";
-import Loading from "../common/Loading";
-import apiService from "../../services/api.service";
-import {
-  formatDateTime,
-  translateStatus,
-  getStatusClass,
-} from "../../utils/helpers";
-import "./Dashboard.css";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Html5QrcodeScanner, Html5QrcodeScanType } from "html5-qrcode";
+import { API_CONFIG } from "../../config/api";
+import { useNavigate } from "react-router-dom";
+import "./GuardiaDashboard.css";
 
-export default function GuardiaDashboard() {
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(null);
-  const [validations, setValidations] = useState([]);
-  const [pendingCodes, setPendingCodes] = useState([]);
-  const [scannedCode, setScannedCode] = useState("");
-  const [validationResult, setValidationResult] = useState(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [guardNotes, setGuardNotes] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [activeTab, setActiveTab] = useState("scanner");
+function GuardDashboard() {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
+  // Estados
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [decodedData, setDecodedData] = useState(null);
+  const [completedOrder, setCompletedOrder] = useState(null);
+  const [step, setStep] = useState("idle"); // idle, scanning, validating, verified, completed, error
+  const [idConfirmed, setIdConfirmed] = useState(false);
+
+  const scannerRef = useRef(null);
+  const html5QrcodeScannerRef = useRef(null);
+
+  // Limpiar escáner al desmontar
   useEffect(() => {
-    loadData();
+    return () => {
+      if (html5QrcodeScannerRef.current) {
+        html5QrcodeScannerRef.current
+          .clear()
+          .catch((err) => console.error("Error al limpiar escáner:", err));
+      }
+    };
   }, []);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [statsData, validationsData, pendingData] = await Promise.all([
-        apiService.getGuardStats(),
-        apiService.getMyValidations(),
-        apiService.getPendingCodes(),
-      ]);
+  // Detener escáner
+  const stopScanning = useCallback(() => {
+    if (html5QrcodeScannerRef.current) {
+      html5QrcodeScannerRef.current
+        .clear()
+        .then(() => {
+          html5QrcodeScannerRef.current = null;
+        })
+        .catch((err) => console.error("Error al detener escáner:", err));
+    }
+  }, []);
 
-      setStats(statsData);
-      setValidations(validationsData);
-      setPendingCodes(pendingData);
+  // Manejar errores de escaneo
+  const handleScanError = useCallback((scanError) => {
+    // Librería lanza muchos errores mientras busca un QR; solo mostramos cuando no se trata de ausencia
+    if (
+      typeof scanError === "string" &&
+      scanError.includes("NotFoundException")
+    ) {
+      return;
+    }
+    if (
+      typeof scanError === "object" &&
+      scanError?.name === "NotFoundException"
+    ) {
+      return;
+    }
+    console.warn("Advertencia de escaneo:", scanError);
+  }, []);
+
+  // Manejar escaneo exitoso
+  const handleScanSuccess = useCallback(
+    async (qrToken) => {
+      console.log("QR escaneado, procesando...");
+
+      // Detener escáner
+      stopScanning();
+      setStep("validating");
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Validar con el backend (que tiene la llave de encriptación)
+        const token = localStorage.getItem("token");
+
+        const validateResponse = await fetch(
+          `${API_CONFIG.BASE_URL}/withdrawals/validate-qr`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ qrToken }),
+          }
+        );
+
+        const validateData = await validateResponse.json();
+
+        if (!validateResponse.ok) {
+          throw new Error(
+            validateData.message || "QR inválido o no autorizado"
+          );
+        }
+
+        // QR válido - mostrar información desencriptada enviada por el backend
+        setDecodedData({
+          raw: qrToken,
+          validated: validateData,
+        });
+        setIdConfirmed(false);
+        setStep("verified");
+      } catch (err) {
+        console.error("Error al validar QR:", err);
+        setError(err.message || "Error al procesar el código QR");
+        setStep("error");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [stopScanning]
+  );
+
+  // Iniciar escáner QR
+  const startScanning = useCallback(() => {
+    setStep("scanning");
+    setError(null);
+    setDecodedData(null);
+    setCompletedOrder(null);
+    setIdConfirmed(false);
+
+    setTimeout(() => {
+      if (scannerRef.current && !html5QrcodeScannerRef.current) {
+        const scanner = new Html5QrcodeScanner(
+          "qr-reader",
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+            showTorchButtonIfSupported: true,
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true,
+            },
+            videoConstraints: {
+              facingMode: { ideal: "environment" },
+            },
+          },
+          /* verbose= */ false
+        );
+
+        scanner.render(handleScanSuccess, handleScanError);
+        html5QrcodeScannerRef.current = scanner;
+      }
+    }, 100);
+  }, [handleScanError, handleScanSuccess]);
+
+  // Completar el retiro
+  const handleCompleteWithdrawal = async () => {
+    if (!decodedData?.raw) return;
+    if (!idConfirmed) {
+      setError("Confirma la cédula del encargado antes de continuar");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // Llamar al endpoint que completa el retiro Y envía notificación Telegram
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/withdrawals/guardian/scan-and-complete`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ qrToken: decodedData.raw }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Error al completar el retiro");
+      }
+
+      // Éxito - mostrar resultado
+      setCompletedOrder(data);
+      setStep("completed");
     } catch (err) {
-      setError(err.message);
+      console.error("Error al completar retiro:", err);
+      setError(err.message || "Error al completar el retiro");
+      setStep("error");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleScanCode = async (e) => {
-    e.preventDefault();
-    if (!scannedCode.trim()) return;
-
-    try {
-      setError("");
-      const result = await apiService.validateCode(scannedCode);
-      setValidationResult(result);
-      setShowConfirmModal(true);
-    } catch (err) {
-      setError(err.message);
-      setValidationResult(null);
-    }
+  // Reiniciar escáner
+  const resetScanner = () => {
+    setStep("idle");
+    setDecodedData(null);
+    setCompletedOrder(null);
+    setError(null);
+    setLoading(false);
+    setIdConfirmed(false);
   };
 
-  const handleConfirmWithdrawal = async () => {
-    try {
-      await apiService.confirmWithdrawal(validationResult.id, guardNotes);
-      setSuccess("Retiro confirmado exitosamente");
-      setShowConfirmModal(false);
-      setValidationResult(null);
-      setScannedCode("");
-      setGuardNotes("");
-      await loadData();
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err) {
-      setError(err.message);
-    }
+  // Logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
   };
-
-  const handleRejectWithdrawal = async () => {
-    const reason = prompt("Ingrese el motivo del rechazo:");
-    if (!reason) return;
-
-    try {
-      await apiService.rejectWithdrawal(validationResult.id, reason);
-      setSuccess("Retiro rechazado");
-      setShowConfirmModal(false);
-      setValidationResult(null);
-      setScannedCode("");
-      await loadData();
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="dashboard-container">
-          <Loading text="Cargando información..." />
-        </div>
-      </>
-    );
-  }
 
   return (
-    <>
-      <Navbar />
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Panel de Guardia</h1>
-            <p className="dashboard-subtitle">
-              Validación de códigos QR para retiros
+    <div className="gd-dashboard">
+      {/* Header */}
+      <header className="gd-header">
+        <div className="gd-header-content">
+          <div className="gd-header-info">
+            <h1>SafePick</h1>
+            <span className="gd-role-badge">🛡️ Guardia</span>
+          </div>
+          <div className="gd-header-user">
+            <span className="gd-user-name">{user?.name}</span>
+            <button onClick={handleLogout} className="gd-btn-logout">
+              Salir
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="gd-main">
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="gd-loading-overlay">
+            <div className="gd-spinner-large"></div>
+            <p>
+              {step === "validating" ? "Validando código..." : "Procesando..."}
             </p>
           </div>
-        </div>
-
-        {error && (
-          <div className="alert alert-danger" onClick={() => setError("")}>
-            {error}
-          </div>
         )}
 
-        {success && (
-          <div className="alert alert-success" onClick={() => setSuccess("")}>
-            {success}
-          </div>
-        )}
-
-        <div className="stats-grid">
-          <StatCard
-            title="Total Validaciones"
-            value={stats?.totalValidations || 0}
-            icon="📊"
-            color="primary"
-          />
-          <StatCard
-            title="Hoy"
-            value={stats?.todayValidations || 0}
-            icon="📅"
-            color="success"
-          />
-          <StatCard
-            title="Este Mes"
-            value={stats?.monthValidations || 0}
-            icon="📈"
-            color="warning"
-          />
-          <StatCard
-            title="Pendientes"
-            value={pendingCodes.length}
-            icon="⏳"
-            color="danger"
-          />
-        </div>
-
-        <div className="tabs">
-          <button
-            className={`tab ${activeTab === "scanner" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("scanner")}
-          >
-            📷 Escanear QR
-          </button>
-          <button
-            className={`tab ${activeTab === "pending" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("pending")}
-          >
-            ⏳ Pendientes
-          </button>
-          <button
-            className={`tab ${activeTab === "history" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("history")}
-          >
-            📋 Historial
-          </button>
-        </div>
-
-        {activeTab === "scanner" && (
-          <Card
-            title="Escanear Código QR"
-            subtitle="Ingrese o escanee el código del retiro"
-          >
-            <div className="scanner-container">
-              <form
-                onSubmit={handleScanCode}
-                style={{ width: "100%", maxWidth: "500px" }}
-              >
-                <div className="form-group">
-                  <input
-                    type="text"
-                    className="scanner-input"
-                    placeholder="QR-XXXXXXXXXX"
-                    value={scannedCode}
-                    onChange={(e) =>
-                      setScannedCode(e.target.value.toUpperCase())
-                    }
-                    autoFocus
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg"
-                  style={{ width: "100%" }}
-                >
-                  🔍 Validar Código
-                </button>
-              </form>
-
-              <div className="alert alert-info" style={{ maxWidth: "500px" }}>
-                <strong>💡 Tip:</strong> Use un lector de códigos QR conectado o
-                ingrese el código manualmente
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {activeTab === "pending" && (
-          <Card
-            title="Códigos Pendientes"
-            subtitle={`${pendingCodes.length} códigos esperando validación`}
-          >
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Estudiante</th>
-                    <th>Persona Autorizada</th>
-                    <th>Generado</th>
-                    <th>Expira</th>
-                    <th>Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendingCodes.map((code) => (
-                    <tr key={code.id}>
-                      <td className="font-mono text-sm">{code.code}</td>
-                      <td>
-                        {code.student?.firstName} {code.student?.lastName}
-                      </td>
-                      <td>
-                        {code.authorizedPerson?.firstName}{" "}
-                        {code.authorizedPerson?.lastName}
-                      </td>
-                      <td>{formatDateTime(code.createdAt)}</td>
-                      <td>{formatDateTime(code.expiresAt)}</td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => {
-                            setScannedCode(code.code);
-                            setActiveTab("scanner");
-                          }}
-                        >
-                          Validar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {pendingCodes.length === 0 && (
-              <p
-                style={{
-                  textAlign: "center",
-                  color: "var(--gray-500)",
-                  padding: "20px",
-                }}
-              >
-                No hay códigos pendientes de validación
+        {/* Step: Idle - Welcome Screen */}
+        {step === "idle" && (
+          <div className="gd-welcome">
+            <div className="gd-welcome-card">
+              <div className="gd-welcome-icon">📸</div>
+              <h2>Control de Retiros</h2>
+              <p>
+                Escanea el código QR del encargado para verificar y completar el
+                retiro
               </p>
-            )}
-          </Card>
-        )}
-
-        {activeTab === "history" && (
-          <Card
-            title="Historial de Validaciones"
-            subtitle="Mis validaciones recientes"
-          >
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Código</th>
-                    <th>Estudiante</th>
-                    <th>Retirado por</th>
-                    <th>Estado</th>
-                    <th>Notas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {validations.map((validation) => (
-                    <tr key={validation.id}>
-                      <td>{formatDateTime(validation.withdrawalTime)}</td>
-                      <td className="font-mono text-sm">{validation.code}</td>
-                      <td>
-                        {validation.student?.firstName}{" "}
-                        {validation.student?.lastName}
-                      </td>
-                      <td>
-                        {validation.authorizedPerson?.firstName}{" "}
-                        {validation.authorizedPerson?.lastName}
-                      </td>
-                      <td>
-                        <span
-                          className={`badge ${getStatusClass(
-                            validation.status
-                          )}`}
-                        >
-                          {translateStatus(validation.status)}
-                        </span>
-                      </td>
-                      <td>{validation.guardNotes || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {validations.length === 0 && (
-              <p
-                style={{
-                  textAlign: "center",
-                  color: "var(--gray-500)",
-                  padding: "20px",
-                }}
-              >
-                No hay validaciones registradas
-              </p>
-            )}
-          </Card>
-        )}
-      </div>
-
-      <Modal
-        isOpen={showConfirmModal}
-        onClose={() => {
-          setShowConfirmModal(false);
-          setValidationResult(null);
-        }}
-        title="Confirmar Retiro"
-        size="lg"
-      >
-        {validationResult && (
-          <>
-            <div className="scanner-result">
-              <div className="validation-info">
-                <div className="validation-item">
-                  <span className="validation-label">Código</span>
-                  <span className="validation-value font-mono">
-                    {validationResult.code}
-                  </span>
-                </div>
-                <div className="validation-item">
-                  <span className="validation-label">Estudiante</span>
-                  <span className="validation-value">
-                    {validationResult.student?.firstName}{" "}
-                    {validationResult.student?.lastName}
-                  </span>
-                </div>
-                <div className="validation-item">
-                  <span className="validation-label">Grado</span>
-                  <span className="validation-value">
-                    {validationResult.student?.grade}°{" "}
-                    {validationResult.student?.section}
-                  </span>
-                </div>
-                <div className="validation-item">
-                  <span className="validation-label">Autorizado</span>
-                  <span className="validation-value">
-                    {validationResult.authorizedPerson?.firstName}{" "}
-                    {validationResult.authorizedPerson?.lastName}
-                  </span>
-                </div>
-                <div className="validation-item">
-                  <span className="validation-label">Relación</span>
-                  <span className="validation-value">
-                    {validationResult.authorizedPerson?.relationship}
-                  </span>
-                </div>
-                <div className="validation-item">
-                  <span className="validation-label">DNI</span>
-                  <span className="validation-value">
-                    {validationResult.authorizedPerson?.dni}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginTop: "20px" }}>
-              <label className="form-label">Notas del Guardia (Opcional)</label>
-              <textarea
-                className="form-textarea"
-                placeholder="Ingrese observaciones si las hubiera..."
-                value={guardNotes}
-                onChange={(e) => setGuardNotes(e.target.value)}
-                rows="3"
-              />
-            </div>
-
-            <div className="alert alert-warning">
-              <strong>⚠️ Importante:</strong> Verifique la identidad de la
-              persona autorizada antes de confirmar el retiro.
-            </div>
-
-            {error && <div className="alert alert-danger">{error}</div>}
-
-            <div className="modal-actions">
               <button
-                type="button"
-                className="btn btn-danger"
-                onClick={handleRejectWithdrawal}
+                onClick={startScanning}
+                className="gd-btn gd-btn-primary gd-btn-large"
               >
-                ❌ Rechazar
+                🎥 Iniciar Escáner
+              </button>
+            </div>
+
+            <div className="gd-instructions-card">
+              <h3>Proceso de Verificación</h3>
+              <ol>
+                <li>El encargado muestra el código QR</li>
+                <li>Escanea el código con la cámara</li>
+                <li>Verifica los datos del niño y encargado</li>
+                <li>Solicita cédula de identidad al encargado</li>
+                <li>Confirma el retiro para notificar al padre</li>
+              </ol>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Scanning */}
+        {step === "scanning" && (
+          <div className="gd-scanner-section">
+            <div className="gd-scanner-card">
+              <h2>📸 Escaneando QR</h2>
+              <p>Posiciona el código QR dentro del marco</p>
+
+              <div className="gd-scanner-wrapper">
+                <div ref={scannerRef} id="qr-reader"></div>
+              </div>
+
+              <button onClick={stopScanning} className="gd-btn gd-btn-danger">
+                ⏹️ Cancelar Escaneo
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Verified - Show Data */}
+        {step === "verified" && decodedData?.validated && (
+          <div className="gd-verified-section">
+            <div className="gd-status-banner gd-status-success">
+              <span>✅</span>
+              <div>
+                <strong>QR Válido</strong>
+                <p>Los datos han sido verificados correctamente</p>
+              </div>
+            </div>
+
+            {/* Child Info */}
+            <div className="gd-info-card">
+              <h3>👦 Niño a Retirar</h3>
+              <div className="gd-info-grid">
+                <div className="gd-info-item">
+                  <span className="gd-label">Nombre:</span>
+                  <span className="gd-value">
+                    {decodedData.validated.order.child.name}
+                  </span>
+                </div>
+                <div className="gd-info-item">
+                  <span className="gd-label">Grado:</span>
+                  <span className="gd-value">
+                    {decodedData.validated.order.child.grade}
+                  </span>
+                </div>
+                <div className="gd-info-item">
+                  <span className="gd-label">Colegio:</span>
+                  <span className="gd-value">
+                    {decodedData.validated.order.child.school}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Picker Info - Important! */}
+            <div className="gd-info-card gd-highlight">
+              <h3>👤 Encargado de Recoger</h3>
+              <div className="gd-info-grid">
+                <div className="gd-info-item">
+                  <span className="gd-label">Nombre:</span>
+                  <span className="gd-value gd-important">
+                    {decodedData.validated.order.picker.name}
+                  </span>
+                </div>
+                <div className="gd-info-item">
+                  <span className="gd-label">Cédula:</span>
+                  <span className="gd-value gd-mono gd-important">
+                    {decodedData.validated.order.picker.cedula}
+                  </span>
+                </div>
+                <div className="gd-info-item">
+                  <span className="gd-label">Relación:</span>
+                  <span className="gd-value">
+                    {decodedData.validated.order.picker.relationship}
+                  </span>
+                </div>
+                <div className="gd-info-item">
+                  <span className="gd-label">Teléfono:</span>
+                  <span className="gd-value">
+                    {decodedData.validated.order.picker.phone}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Parent Info */}
+            <div className="gd-info-card">
+              <h3>👨‍👩‍👧 Padre/Tutor</h3>
+              <div className="gd-info-grid">
+                <div className="gd-info-item">
+                  <span className="gd-label">Nombre:</span>
+                  <span className="gd-value">
+                    {decodedData.validated.order.parent.name}
+                  </span>
+                </div>
+                <div className="gd-info-item">
+                  <span className="gd-label">Teléfono:</span>
+                  <span className="gd-value">
+                    {decodedData.validated.order.parent.phone}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Reminder */}
+            <div className="gd-alert gd-alert-warning">
+              <span>⚠️</span>
+              <div>
+                <strong>Verificación de Identidad</strong>
+                <p>
+                  Solicite la cédula de identidad al encargado y compare con los
+                  datos mostrados antes de confirmar.
+                </p>
+              </div>
+            </div>
+
+            <div className="gd-confirm-check">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={idConfirmed}
+                  onChange={(event) => setIdConfirmed(event.target.checked)}
+                />
+                Confirmé que los datos del documento coinciden con el QR
+              </label>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="gd-actions">
+              <button
+                onClick={resetScanner}
+                className="gd-btn gd-btn-secondary"
+              >
+                Cancelar
               </button>
               <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleConfirmWithdrawal}
+                onClick={handleCompleteWithdrawal}
+                className="gd-btn gd-btn-success gd-btn-large"
+                disabled={!idConfirmed || loading}
               >
                 ✅ Confirmar Retiro
               </button>
             </div>
-          </>
+          </div>
         )}
-      </Modal>
-    </>
+
+        {/* Step: Completed */}
+        {step === "completed" && completedOrder && (
+          <div className="gd-completed-section">
+            <div className="gd-completed-card">
+              <div className="gd-completed-icon">🎉</div>
+              <h2>¡Retiro Completado!</h2>
+              <p>El retiro ha sido registrado exitosamente</p>
+
+              <div className="gd-completed-details">
+                <div className="gd-detail-row">
+                  <span>Niño:</span>
+                  <strong>{completedOrder.order.child.name}</strong>
+                </div>
+                <div className="gd-detail-row">
+                  <span>Recogido por:</span>
+                  <strong>{completedOrder.order.picker.name}</strong>
+                </div>
+                <div className="gd-detail-row">
+                  <span>Hora:</span>
+                  <strong>
+                    {new Date(completedOrder.completionTime).toLocaleString(
+                      "es-ES",
+                      {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      }
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              {/* Notification Status */}
+              <div
+                className={`gd-notification-status ${
+                  completedOrder.notificationSent ? "gd-sent" : "gd-not-sent"
+                }`}
+              >
+                {completedOrder.notificationSent ? (
+                  <>
+                    <span className="gd-notif-icon">📱</span>
+                    <div>
+                      <strong>Padre Notificado</strong>
+                      <p>Se envió notificación por Telegram</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="gd-notif-icon">⚠️</span>
+                    <div>
+                      <strong>Sin Notificación</strong>
+                      <p>El padre no tiene Telegram configurado</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <button
+                onClick={resetScanner}
+                className="gd-btn gd-btn-primary gd-btn-large"
+              >
+                🔄 Escanear Otro QR
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step: Error */}
+        {step === "error" && (
+          <div className="gd-error-section">
+            <div className="gd-error-card">
+              <div className="gd-error-icon">❌</div>
+              <h2>Error en Verificación</h2>
+              <p className="gd-error-message">{error}</p>
+
+              <div className="gd-error-hint">
+                <p>Posibles causas:</p>
+                <ul>
+                  <li>El código QR no es válido</li>
+                  <li>La orden ya fue completada o cancelada</li>
+                  <li>El código temporal ha expirado</li>
+                </ul>
+              </div>
+
+              <button
+                onClick={resetScanner}
+                className="gd-btn gd-btn-primary gd-btn-large"
+              >
+                🔄 Intentar de Nuevo
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
+
+export default GuardDashboard;

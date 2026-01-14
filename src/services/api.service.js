@@ -139,34 +139,47 @@ class ApiService {
 
   // Parent endpoints
   getMyChildren() {
-    return this.request("/parent/children");
+    return this.request("/children");
   }
 
+  // Personas autorizadas vienen en las órdenes de retiro
   getAuthorizedPersons() {
-    return this.request("/parent/authorized-persons");
+    // Los pickers están incluidos en withdrawals, retornar array vacío
+    return Promise.resolve([]);
   }
 
   registerAuthorizedPerson(data) {
-    return this.request("/parent/authorized-persons", "POST", data);
+    // Esta funcionalidad se hace al crear una orden de retiro
+    return this.request("/withdrawals", "POST", data);
   }
 
   updateAuthorizedPerson(id, data) {
-    return this.request(`/parent/authorized-persons/${id}`, "PUT", data);
+    return Promise.reject(new Error("Not implemented"));
   }
 
   deleteAuthorizedPerson(id) {
-    return this.request(`/parent/authorized-persons/${id}`, "DELETE");
+    return Promise.reject(new Error("Not implemented"));
   }
 
   generateWithdrawalCode(data) {
-    return this.request("/parent/withdrawal-codes", "POST", data);
+    return this.request("/withdrawals", "POST", data);
   }
 
   getWithdrawalCodes(filters = {}) {
     const params = new URLSearchParams(filters).toString();
-    return this.request(
-      `/parent/withdrawal-codes${params ? "?" + params : ""}`
-    );
+    return this.request(`/withdrawals${params ? "?" + params : ""}`);
+  }
+
+  createWithdrawalOrder(data) {
+    return this.request("/withdrawals", "POST", data);
+  }
+
+  getPickerCredentials(orderId) {
+    return this.request(`/withdrawals/${orderId}/credentials`, "POST");
+  }
+
+  cancelWithdrawalOrder(orderId) {
+    return this.request(`/withdrawals/${orderId}/cancel`, "POST");
   }
 
   getParentWithdrawalHistory(studentId) {
@@ -197,6 +210,31 @@ class ApiService {
 
   getPendingCodes() {
     return this.request("/guard/pending");
+  }
+
+  // Guard QR validation endpoints
+  validateQR(encryptedData) {
+    return this.request("/withdrawals/validate-qr", "POST", { encryptedData });
+  }
+
+  completeWithdrawal(orderId) {
+    return this.request("/withdrawals/guardian/scan-and-complete", "POST", {
+      orderId,
+    });
+  }
+
+  // Picker endpoints
+  loginPicker(cedula, temporaryCode) {
+    return this.request(
+      "/auth/login-picker",
+      "POST",
+      { cedula, temporaryCode },
+      false
+    );
+  }
+
+  getPickerOrder() {
+    return this.request("/withdrawals/picker/my-order");
   }
 }
 

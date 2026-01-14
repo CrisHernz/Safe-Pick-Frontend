@@ -1,0 +1,68 @@
+.phone-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.phone-input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.phone-input-required {
+  color: #d32f2f;
+  margin-left: 4px;
+}
+
+.phone-input-control {
+  display: flex;
+  gap: 8px;
+}
+
+.phone-input-select {
+  flex: 0 0 46%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #fff;
+  appearance: none;
+}
+
+.phone-input-field {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.phone-input-select:focus,
+.phone-input-field:focus {
+  outline: none;
+  border-color: #111;
+}
+
+.phone-input-hint {
+  font-size: 0.75rem;
+  color: #777;
+}
+
+.phone-input-helper {
+  font-size: 0.8rem;
+  color: #555;
+  margin: 0;
+}
+
+.phone-input-error {
+  font-size: 0.8rem;
+  color: #d32f2f;
+  margin: 0;
+}
+
+.phone-input.has-error .phone-input-field,
+.phone-input.has-error .phone-input-select {
+  border-color: #d32f2f;
+}

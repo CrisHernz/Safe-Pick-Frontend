@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_CONFIG } from "../config/api";
 import "./PickerLogin.css";
 
 function PickerLogin() {
@@ -13,6 +14,10 @@ function PickerLogin() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // Solo permitir números
+    if (name === "cedula" || name === "temporaryCode") {
+      if (!/^\d*$/.test(value)) return;
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -54,21 +59,22 @@ function PickerLogin() {
   };
 
   return (
-    <div className="picker-login-container">
-      <div className="picker-login-card">
-        <div className="login-header">
-          <h1>🎫 Acceso Picker</h1>
-          <p>Ingrese sus credenciales temporales</p>
+    <div className="pkl-container">
+      <div className="pkl-card">
+        <div className="pkl-header">
+          <h1>SafePick</h1>
+          <span className="pkl-badge">Acceso Encargado</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="picker-login-form">
-          {error && <div className="alert alert-error">❌ {error}</div>}
+        <form onSubmit={handleSubmit} className="pkl-form">
+          {error && (
+            <div className="pkl-alert pkl-alert-error">
+              <span>❌</span> {error}
+            </div>
+          )}
 
-          <div className="form-group">
-            <label htmlFor="cedula">
-              <span className="label-icon">🆔</span>
-              Cédula de Identidad
-            </label>
+          <div className="pkl-form-group">
+            <label htmlFor="cedula">Cédula de Identidad</label>
             <input
               type="text"
               id="cedula"
@@ -78,62 +84,57 @@ function PickerLogin() {
               placeholder="Ej: 1234567890"
               required
               disabled={loading}
-              pattern="[0-9]{8,13}"
-              title="Debe ser un número de 8 a 13 dígitos"
+              maxLength="13"
+              inputMode="numeric"
+              autoComplete="off"
             />
-            <small className="input-hint">
+            <span className="pkl-hint">
               Ingrese su número de cédula sin puntos ni guiones
-            </small>
+            </span>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="temporaryCode">
-              <span className="label-icon">🔑</span>
-              Código Temporal
-            </label>
+          <div className="pkl-form-group">
+            <label htmlFor="temporaryCode">Código Temporal</label>
             <input
               type="text"
               id="temporaryCode"
               name="temporaryCode"
               value={formData.temporaryCode}
               onChange={handleChange}
-              placeholder="Ej: 123456"
+              placeholder="••••••"
               required
               disabled={loading}
-              pattern="[0-9]{6}"
-              title="Debe ser un código de 6 dígitos"
               maxLength="6"
+              inputMode="numeric"
+              autoComplete="off"
+              className="pkl-code-input"
             />
-            <small className="input-hint">
-              Código de 6 dígitos proporcionado por el padre/tutor
-            </small>
+            <span className="pkl-hint">
+              Código de 6 dígitos proporcionado por el padre
+            </span>
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary btn-lg"
+            className="pkl-btn pkl-btn-primary"
             disabled={loading}
           >
-            {loading ? "⏳ Iniciando sesión..." : "🚀 Ingresar"}
+            {loading ? "Iniciando sesión..." : "Ingresar"}
           </button>
         </form>
 
-        <div className="login-footer">
-          <div className="info-box">
-            <p>
-              ℹ️ <strong>Información importante:</strong>
-            </p>
-            <ul>
-              <li>El código temporal tiene una validez de 24 horas</li>
-              <li>Solo puede usarse para una orden de retiro</li>
-              <li>Si tiene problemas, contacte al padre/tutor</li>
-            </ul>
-          </div>
-
-          <button onClick={() => navigate("/login")} className="btn-link">
-            ← Volver al login principal
-          </button>
+        <div className="pkl-info">
+          <h3>ℹ️ Información importante</h3>
+          <ul>
+            <li>El código temporal es válido hasta las 2:00 PM</li>
+            <li>Solo puede usarse para una orden de retiro</li>
+            <li>Si tiene problemas, contacte al padre/tutor</li>
+          </ul>
         </div>
+
+        <button onClick={() => navigate("/login")} className="pkl-link">
+          ← Volver al login principal
+        </button>
       </div>
     </div>
   );

@@ -1,512 +1,584 @@
-import React, { useState, useEffect } from "react";
-import Navbar from "../common/Navbar";
-import Card from "../common/Card";
-import StatCard from "../common/StatCard";
-import Modal from "../common/Modal";
-import Loading from "../common/Loading";
+import React, { useState, useEffect, useCallback } from "react";
 import apiService from "../../services/api.service";
-import {
-  formatDateTime,
-  translateStatus,
-  getStatusClass,
-  getInitials,
-  generateColorFromText,
-  copyToClipboard,
-} from "../../utils/helpers";
-import "./Dashboard.css";
+import QRCode from "qrcode";
+import PhoneInput from "../common/PhoneInput";
+import "./PadreDashboard.css";
 
 export default function PadreDashboard() {
   const [loading, setLoading] = useState(true);
   const [children, setChildren] = useState([]);
-  const [authorizedPersons, setAuthorizedPersons] = useState([]);
-  const [withdrawalCodes, setWithdrawalCodes] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [activeView, setActiveView] = useState("children");
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState("");
-  const [formData, setFormData] = useState({});
+  const [selectedChild, setSelectedChild] = useState(null);
+  const [formData, setFormData] = useState({
+    pickerName: "",
+    pickerCedula: "",
+    relationship: "",
+    pickerPhone: "",
+  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [activeTab, setActiveTab] = useState("children");
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [credentials, setCredentials] = useState(null);
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [childrenData, authPersonsData, codesData] = await Promise.all([
+      setError("");
+      const [childrenData, ordersData] = await Promise.all([
         apiService.getMyChildren(),
-        apiService.getAuthorizedPersons(),
         apiService.getWithdrawalCodes(),
       ]);
-
-      setChildren(childrenData);
-      setAuthorizedPersons(authPersonsData);
-      setWithdrawalCodes(codesData);
+      setChildren(childrenData || []);
+      setOrders(ordersData || []);
     } catch (err) {
-      setError(err.message);
+      setError("Error al cargar datos: " + err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleOpenModal = (type, data = {}) => {
-    setModalType(type);
-    setFormData(data);
-    setShowModal(true);
-    setError("");
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setFormData({});
-    setError("");
-  };
-
-  const handleRegisterAuthorizedPerson = async (e) => {
-    e.preventDefault();
+  // Función para encriptar los datos del QR (simulando la encriptación del backend)
+  const generateEncryptedQR = async (qrToken) => {
     try {
-      await apiService.registerAuthorizedPerson(formData);
-      await loadData();
-      setSuccess("Persona autorizada registrada correctamente");
-      handleCloseModal();
-      setTimeout(() => setSuccess(""), 3000);
+      // El qrToken ya viene encriptado/codificado del backend en base64
+      // Generamos el QR con ese token
+      const qrImage = await QRCode.toDataURL(qrToken, {
+        width: 280,
+        margin: 2,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+        errorCorrectionLevel: "H",
+      });
+      return qrImage;
     } catch (err) {
-      setError(err.message);
+      console.error("Error generando QR:", err);
+      throw err;
     }
   };
 
-  const handleGenerateQR = async (e) => {
+  const handleCreateOrder = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+    setSubmitting(true);
+
     try {
-      const result = await apiService.generateWithdrawalCode(formData);
+      const result = await apiService.createWithdrawalOrder({
+        childId: selectedChild.id,
+        pickerName: formData.pickerName,
+        pickerCedula: formData.pickerCedula,
+        relationship: formData.relationship,
+        pickerPhone: formData.pickerPhone,
+      });
+
+      // Generar QR con el token encriptado
+      const qrImage = await generateEncryptedQR(result.qrToken);
+
+      // Preparar credenciales para mostrar
+      setCredentials({
+        cedula: formData.pickerCedula,
+        temporaryCode:
+          result.pickerCredentials?.temporaryCode || result.temporaryCode,
+        pickerName: formData.pickerName,
+        childName: selectedChild.name,
+        qrToken: result.qrToken,
+        expiresAt: result.pickerCredentials?.expiresAt,
+        orderId: result.withdrawalOrderId,
+      });
+      setQrDataUrl(qrImage);
+      setShowCredentials(true);
+      setShowModal(false);
+      setSuccess("¡Orden creada exitosamente!");
+
+      // Recargar datos
       await loadData();
-      setSuccess(`Código QR generado: ${result.code}`);
-      handleCloseModal();
-      setTimeout(() => setSuccess(""), 5000);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Error al crear la orden");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleCopyCode = async (code) => {
-    const copied = await copyToClipboard(code);
-    if (copied) {
-      setSuccess("Código copiado al portapapeles");
-      setTimeout(() => setSuccess(""), 2000);
+  const handleGetCredentials = async (orderId) => {
+    try {
+      setError("");
+      const result = await apiService.getPickerCredentials(orderId);
+      const order = orders.find((o) => o.id === orderId);
+
+      // Generar QR con el token encriptado
+      const qrImage = await generateEncryptedQR(result.qrToken);
+
+      setCredentials({
+        cedula: result.pickerCredentials.cedula,
+        temporaryCode: result.pickerCredentials.temporaryCode,
+        pickerName:
+          result.pickerInfo?.name || order?.picker?.name || "Encargado",
+        childName: order?.child?.name || "Niño/a",
+        qrToken: result.qrToken,
+        expiresAt: result.pickerCredentials?.expiresAt,
+        orderId: orderId,
+      });
+      setQrDataUrl(qrImage);
+      setShowCredentials(true);
+    } catch (err) {
+      setError(err.message || "Error al obtener credenciales");
     }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm("¿Estás seguro de cancelar esta orden de retiro?")) {
+      return;
+    }
+
+    try {
+      setError("");
+      await apiService.cancelWithdrawalOrder(orderId);
+      setSuccess("Orden cancelada exitosamente");
+      await loadData();
+    } catch (err) {
+      setError(err.message || "Error al cancelar la orden");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/";
+  };
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      PENDING: { text: "Pendiente", emoji: "⏳", color: "#ff9800" },
+      VALIDATED: { text: "Lista", emoji: "✅", color: "#4caf50" },
+      COMPLETED: { text: "Completada", emoji: "🎉", color: "#2196f3" },
+      CANCELLED: { text: "Cancelada", emoji: "❌", color: "#d32f2f" },
+    };
+    const badge = badges[status] || badges.PENDING;
+    return (
+      <span
+        className="status-badge"
+        style={{ background: badge.color + "20", color: badge.color }}
+      >
+        {badge.emoji} {badge.text}
+      </span>
+    );
+  };
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleString("es-ES", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
   };
 
   if (loading) {
     return (
-      <>
-        <Navbar />
-        <div className="dashboard-container">
-          <Loading text="Cargando información..." />
+      <div className="sp-loading-container">
+        <div className="sp-loading-card">
+          <div className="sp-spinner"></div>
+          <p>Cargando información...</p>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Panel de Padre/Madre</h1>
-            <p className="dashboard-subtitle">
-              Gestiona retiros y personas autorizadas
-            </p>
+    <div className="sp-dashboard">
+      {/* Header */}
+      <header className="sp-header">
+        <div className="sp-header-content">
+          <div className="sp-header-info">
+            <h1>SafePick</h1>
+            <p>Hola, {user.name || "Padre"}</p>
           </div>
+          <button onClick={handleLogout} className="sp-btn-logout">
+            Salir
+          </button>
         </div>
+      </header>
 
+      {/* Main Content */}
+      <main className="sp-main">
+        {/* Alerts */}
         {error && (
-          <div className="alert alert-danger" onClick={() => setError("")}>
-            {error}
+          <div className="sp-alert sp-alert-error">
+            <span>❌</span> {error}
+            <button onClick={() => setError("")} className="sp-alert-close">
+              ×
+            </button>
           </div>
         )}
 
         {success && (
-          <div className="alert alert-success" onClick={() => setSuccess("")}>
-            {success}
+          <div className="sp-alert sp-alert-success">
+            <span>✅</span> {success}
+            <button onClick={() => setSuccess("")} className="sp-alert-close">
+              ×
+            </button>
           </div>
         )}
 
-        <div className="tabs">
+        {/* Tab Navigation */}
+        <div className="sp-tabs">
           <button
-            className={`tab ${activeTab === "children" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("children")}
+            onClick={() => setActiveView("children")}
+            className={`sp-tab ${activeView === "children" ? "active" : ""}`}
           >
-            👶 Mis Hijos
+            <span className="sp-tab-icon">👶</span>
+            <span className="sp-tab-text">Mis Hijos</span>
+            <span className="sp-tab-count">{children.length}</span>
           </button>
           <button
-            className={`tab ${activeTab === "authorized" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("authorized")}
+            onClick={() => setActiveView("orders")}
+            className={`sp-tab ${activeView === "orders" ? "active" : ""}`}
           >
-            👤 Personas Autorizadas
-          </button>
-          <button
-            className={`tab ${activeTab === "codes" ? "tab-active" : ""}`}
-            onClick={() => setActiveTab("codes")}
-          >
-            🎫 Códigos QR
+            <span className="sp-tab-icon">📋</span>
+            <span className="sp-tab-text">Órdenes</span>
+            <span className="sp-tab-count">{orders.length}</span>
           </button>
         </div>
 
-        {activeTab === "children" && (
-          <>
-            <div className="stats-grid">
-              <StatCard
-                title="Mis Hijos"
-                value={children.length}
-                icon="👶"
-                color="primary"
-              />
-              <StatCard
-                title="Personas Autorizadas"
-                value={authorizedPersons.length}
-                icon="👤"
-                color="success"
-              />
-              <StatCard
-                title="Códigos Activos"
-                value={
-                  withdrawalCodes.filter((c) => c.status === "PENDING").length
-                }
-                icon="🎫"
-                color="warning"
-              />
-            </div>
-
-            <div className="students-grid">
-              {children.map((child) => (
-                <div key={child.id} className="student-card">
-                  <div className="student-header">
-                    <div
-                      className="student-avatar"
-                      style={{
-                        backgroundColor: generateColorFromText(
-                          `${child.firstName} ${child.lastName}`
-                        ),
-                      }}
-                    >
-                      {getInitials(`${child.firstName} ${child.lastName}`)}
+        {/* Children View */}
+        {activeView === "children" && (
+          <section className="sp-section">
+            {children.length === 0 ? (
+              <div className="sp-empty-state">
+                <div className="sp-empty-icon">👶</div>
+                <h3>No hay hijos registrados</h3>
+                <p>Contacta con la institución para registrar a tus hijos</p>
+              </div>
+            ) : (
+              <div className="sp-cards-list">
+                {children.map((child) => (
+                  <div key={child.id} className="sp-card">
+                    <div className="sp-card-header">
+                      <div className="sp-card-avatar">👦</div>
+                      <div className="sp-card-title">
+                        <h3>{child.name}</h3>
+                        <span>{child.grade}° Grado</span>
+                      </div>
                     </div>
-                    <div className="student-info">
-                      <h4>
-                        {child.firstName} {child.lastName}
-                      </h4>
-                      <span className="student-grade">
-                        {child.grade}° Grado{" "}
-                        {child.section ? `- Sección ${child.section}` : ""}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="student-details">
-                    <div className="student-detail">
-                      <span>🏫</span>
-                      <span>{child.institution?.name}</span>
+                    <div className="sp-card-body">
+                      <div className="sp-card-info">
+                        <span className="sp-info-label">Colegio</span>
+                        <span className="sp-info-value">{child.school}</span>
+                      </div>
                     </div>
                     <button
-                      className="btn btn-primary btn-sm"
-                      style={{ marginTop: "12px", width: "100%" }}
-                      onClick={() =>
-                        handleOpenModal("qr", {
-                          studentId: child.id,
-                          studentName: `${child.firstName} ${child.lastName}`,
-                        })
-                      }
+                      onClick={() => {
+                        setSelectedChild(child);
+                        setShowModal(true);
+                        setError("");
+                        setFormData({
+                          pickerName: "",
+                          pickerCedula: "",
+                          relationship: "",
+                          pickerPhone: "",
+                        });
+                      }}
+                      className="sp-btn sp-btn-primary"
                     >
-                      ➕ Generar Código QR
+                      Crear Orden de Retiro
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {children.length === 0 && (
-              <Card>
-                <p style={{ textAlign: "center", color: "var(--gray-500)" }}>
-                  No tienes hijos registrados en el sistema.
-                </p>
-              </Card>
-            )}
-          </>
-        )}
-
-        {activeTab === "authorized" && (
-          <Card
-            title="Personas Autorizadas"
-            subtitle={`${authorizedPersons.length} personas pueden retirar a tus hijos`}
-            actions={
-              <button
-                className="btn btn-primary"
-                onClick={() => handleOpenModal("authorized")}
-              >
-                ➕ Nueva Persona
-              </button>
-            }
-          >
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nombre</th>
-                    <th>DNI</th>
-                    <th>Relación</th>
-                    <th>Teléfono</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {authorizedPersons.map((person) => (
-                    <tr key={person.id}>
-                      <td className="font-semibold">
-                        {person.firstName} {person.lastName}
-                      </td>
-                      <td>{person.dni}</td>
-                      <td>{person.relationship}</td>
-                      <td>{person.phoneNumber}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            person.isActive
-                              ? "status-confirmed"
-                              : "status-rejected"
-                          }`}
-                        >
-                          {person.isActive ? "Activo" : "Inactivo"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {authorizedPersons.length === 0 && (
-              <p
-                style={{
-                  textAlign: "center",
-                  color: "var(--gray-500)",
-                  padding: "20px",
-                }}
-              >
-                No tienes personas autorizadas registradas.
-              </p>
-            )}
-          </Card>
-        )}
-
-        {activeTab === "codes" && (
-          <Card
-            title="Códigos QR Generados"
-            subtitle="Historial de códigos para retiros"
-          >
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Estudiante</th>
-                    <th>Autorizado</th>
-                    <th>Fecha Creación</th>
-                    <th>Expira</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {withdrawalCodes.map((code) => (
-                    <tr key={code.id}>
-                      <td className="font-mono text-sm">{code.code}</td>
-                      <td>
-                        {code.student?.firstName} {code.student?.lastName}
-                      </td>
-                      <td>
-                        {code.authorizedPerson?.firstName}{" "}
-                        {code.authorizedPerson?.lastName}
-                      </td>
-                      <td>{formatDateTime(code.createdAt)}</td>
-                      <td>{formatDateTime(code.expiresAt)}</td>
-                      <td>
-                        <span
-                          className={`badge ${getStatusClass(code.status)}`}
-                        >
-                          {translateStatus(code.status)}
-                        </span>
-                      </td>
-                      <td>
-                        {code.status === "PENDING" && (
-                          <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={() => handleCopyCode(code.code)}
-                          >
-                            📋 Copiar
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {withdrawalCodes.length === 0 && (
-              <p
-                style={{
-                  textAlign: "center",
-                  color: "var(--gray-500)",
-                  padding: "20px",
-                }}
-              >
-                No has generado ningún código QR aún.
-              </p>
-            )}
-          </Card>
-        )}
-      </div>
-
-      <Modal
-        isOpen={showModal && modalType === "authorized"}
-        onClose={handleCloseModal}
-        title="Registrar Persona Autorizada"
-      >
-        <form onSubmit={handleRegisterAuthorizedPerson}>
-          <div className="grid-2">
-            <div className="form-group">
-              <label className="form-label">Nombre *</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.firstName || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Apellido *</label>
-              <input
-                type="text"
-                className="form-input"
-                value={formData.lastName || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">DNI *</label>
-            <input
-              type="text"
-              className="form-input"
-              maxLength="8"
-              value={formData.dni || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, dni: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Relación *</label>
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Ej: Tío, Abuelo, Hermano"
-              value={formData.relationship || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, relationship: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Teléfono *</label>
-            <input
-              type="tel"
-              className="form-input"
-              value={formData.phoneNumber || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, phoneNumber: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          {error && <div className="alert alert-danger">{error}</div>}
-
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleCloseModal}
-            >
-              Cancelar
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Registrar Persona
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      <Modal
-        isOpen={showModal && modalType === "qr"}
-        onClose={handleCloseModal}
-        title={`Generar Código QR - ${formData.studentName}`}
-      >
-        <form onSubmit={handleGenerateQR}>
-          <div className="form-group">
-            <label className="form-label">Persona Autorizada *</label>
-            <select
-              className="form-select"
-              value={formData.authorizedPersonId || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, authorizedPersonId: e.target.value })
-              }
-              required
-            >
-              <option value="">Seleccionar...</option>
-              {authorizedPersons
-                .filter((p) => p.isActive)
-                .map((person) => (
-                  <option key={person.id} value={person.id}>
-                    {person.firstName} {person.lastName} - {person.relationship}
-                  </option>
                 ))}
-            </select>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Orders View */}
+        {activeView === "orders" && (
+          <section className="sp-section">
+            {orders.length === 0 ? (
+              <div className="sp-empty-state">
+                <div className="sp-empty-icon">📋</div>
+                <h3>No hay órdenes de retiro</h3>
+                <p>Crea una orden desde la sección de hijos</p>
+              </div>
+            ) : (
+              <div className="sp-cards-list">
+                {orders.map((order) => (
+                  <div key={order.id} className="sp-card">
+                    <div className="sp-card-header">
+                      <div className="sp-card-title">
+                        <h3>{order.child?.name}</h3>
+                        <span>Encargado: {order.picker?.name}</span>
+                      </div>
+                      {getStatusBadge(order.status)}
+                    </div>
+                    <div className="sp-card-body">
+                      <div className="sp-card-info">
+                        <span className="sp-info-label">Relación</span>
+                        <span className="sp-info-value">
+                          {order.picker?.relationship}
+                        </span>
+                      </div>
+                      <div className="sp-card-info">
+                        <span className="sp-info-label">Cédula</span>
+                        <span className="sp-info-value">
+                          {order.picker?.cedula}
+                        </span>
+                      </div>
+                      <div className="sp-card-info">
+                        <span className="sp-info-label">Creada</span>
+                        <span className="sp-info-value">
+                          {formatDate(order.createdAt)}
+                        </span>
+                      </div>
+                      {order.status === "COMPLETED" && order.withdrawalDate && (
+                        <div className="sp-card-info sp-completed">
+                          <span className="sp-info-label">Completada</span>
+                          <span className="sp-info-value">
+                            {formatDate(order.withdrawalDate)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Acciones según estado */}
+                    {(order.status === "PENDING" ||
+                      order.status === "VALIDATED") && (
+                      <div className="sp-card-actions">
+                        <button
+                          onClick={() => handleGetCredentials(order.id)}
+                          className="sp-btn sp-btn-primary"
+                        >
+                          🔑 Ver Credenciales y QR
+                        </button>
+                        <button
+                          onClick={() => handleCancelOrder(order.id)}
+                          className="sp-btn sp-btn-danger"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
+
+                    {order.status === "COMPLETED" && (
+                      <div className="sp-status-message sp-success">
+                        ✅ Retiro completado exitosamente
+                      </div>
+                    )}
+
+                    {order.status === "CANCELLED" && (
+                      <div className="sp-status-message sp-error">
+                        ❌ Esta orden fue cancelada
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Modal Create Order */}
+        {showModal && (
+          <div className="sp-modal-overlay" onClick={() => setShowModal(false)}>
+            <div className="sp-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="sp-modal-header">
+                <h2>Nueva Orden de Retiro</h2>
+                <p>Para: {selectedChild?.name}</p>
+              </div>
+
+              <form onSubmit={handleCreateOrder} className="sp-form">
+                <div className="sp-form-group">
+                  <label>Nombre del encargado</label>
+                  <input
+                    type="text"
+                    value={formData.pickerName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, pickerName: e.target.value })
+                    }
+                    placeholder="Nombre completo"
+                    required
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div className="sp-form-group">
+                  <label>Cédula de identidad</label>
+                  <input
+                    type="text"
+                    value={formData.pickerCedula}
+                    onChange={(e) =>
+                      setFormData({ ...formData, pickerCedula: e.target.value })
+                    }
+                    placeholder="Ej: 1234567890"
+                    required
+                    disabled={submitting}
+                    pattern="[0-9]{8,13}"
+                  />
+                </div>
+
+                <div className="sp-form-group">
+                  <label>Relación con el niño</label>
+                  <select
+                    value={formData.relationship}
+                    onChange={(e) =>
+                      setFormData({ ...formData, relationship: e.target.value })
+                    }
+                    required
+                    disabled={submitting}
+                  >
+                    <option value="">Seleccionar...</option>
+                    <option value="padre">Padre</option>
+                    <option value="madre">Madre</option>
+                    <option value="abuelo">Abuelo</option>
+                    <option value="abuela">Abuela</option>
+                    <option value="tío">Tío</option>
+                    <option value="tía">Tía</option>
+                    <option value="hermano">Hermano</option>
+                    <option value="hermana">Hermana</option>
+                    <option value="otro">Otro Familiar</option>
+                  </select>
+                </div>
+
+                <div className="sp-form-group">
+                  <PhoneInput
+                    label="Teléfono de contacto"
+                    id="picker-phone"
+                    name="pickerPhone"
+                    value={formData.pickerPhone}
+                    onChange={(phoneValue) =>
+                      setFormData({ ...formData, pickerPhone: phoneValue })
+                    }
+                    required
+                    disabled={submitting}
+                    helperText="Selecciona el país y escribe solo los dígitos"
+                  />
+                </div>
+
+                {error && (
+                  <div className="sp-alert sp-alert-error">{error}</div>
+                )}
+
+                <div className="sp-modal-actions">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="sp-btn sp-btn-secondary"
+                    disabled={submitting}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="sp-btn sp-btn-primary"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Creando..." : "Crear Orden"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
+        )}
 
-          <div className="alert alert-info">
-            <strong>ℹ️ Importante:</strong> El código QR será válido por 24
-            horas y debe ser presentado al guardia de seguridad para el retiro.
-          </div>
-
-          {error && <div className="alert alert-danger">{error}</div>}
-
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleCloseModal}
+        {/* Modal Credentials & QR */}
+        {showCredentials && credentials && (
+          <div
+            className="sp-modal-overlay"
+            onClick={() => setShowCredentials(false)}
+          >
+            <div
+              className="sp-modal sp-modal-credentials"
+              onClick={(e) => e.stopPropagation()}
             >
-              Cancelar
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Generar Código QR
-            </button>
+              <div className="sp-modal-header sp-success-header">
+                <h2>✅ Credenciales Generadas</h2>
+                <p>Para recoger a: {credentials.childName}</p>
+              </div>
+
+              <div className="sp-credentials-box">
+                <div className="sp-credential-item">
+                  <span className="sp-credential-label">ENCARGADO</span>
+                  <span className="sp-credential-value">
+                    {credentials.pickerName}
+                  </span>
+                </div>
+
+                <div className="sp-credential-item">
+                  <span className="sp-credential-label">CÉDULA (USUARIO)</span>
+                  <span className="sp-credential-value sp-mono">
+                    {credentials.cedula}
+                  </span>
+                </div>
+
+                <div className="sp-credential-item sp-highlight">
+                  <span className="sp-credential-label">CÓDIGO TEMPORAL</span>
+                  <span className="sp-credential-code">
+                    {credentials.temporaryCode}
+                  </span>
+                </div>
+              </div>
+
+              {/* QR Code Display */}
+              {qrDataUrl && (
+                <div className="sp-qr-section">
+                  <h3>Código QR Encriptado</h3>
+                  <div className="sp-qr-container">
+                    <img src={qrDataUrl} alt="QR Code" />
+                  </div>
+                  <p className="sp-qr-hint">
+                    Este QR contiene datos encriptados que solo el guardia puede
+                    verificar
+                  </p>
+                </div>
+              )}
+
+              <div className="sp-warning-box">
+                <span>⏰</span>
+                <div>
+                  <strong>Válido hasta las 2:00 PM</strong>
+                  <p>El código expira automáticamente después de esta hora</p>
+                </div>
+              </div>
+
+              <div className="sp-instructions">
+                <h4>Instrucciones para {credentials.pickerName}:</h4>
+                <ol>
+                  <li>
+                    Ir a <strong>{window.location.origin}/picker-login</strong>
+                  </li>
+                  <li>
+                    Ingresar cédula: <strong>{credentials.cedula}</strong>
+                  </li>
+                  <li>
+                    Ingresar código:{" "}
+                    <strong>{credentials.temporaryCode}</strong>
+                  </li>
+                  <li>Mostrar el QR al guardia de seguridad</li>
+                  <li>El guardia verificará y completará el retiro</li>
+                </ol>
+              </div>
+
+              <button
+                onClick={() => {
+                  setShowCredentials(false);
+                  setQrDataUrl("");
+                }}
+                className="sp-btn sp-btn-primary"
+              >
+                Entendido
+              </button>
+            </div>
           </div>
-        </form>
-      </Modal>
-    </>
+        )}
+      </main>
+    </div>
   );
 }

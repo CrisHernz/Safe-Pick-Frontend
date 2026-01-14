@@ -7,17 +7,17 @@ import {
 } from "react-router-dom";
 import Login from "../components/Login";
 import Register from "../components/Register";
-import Dashboard from "../components/Dashboard";
+import PadreDashboard from "../components/dashboards/PadreDashboard";
 import CreateWithdrawal from "../components/CreateWithdrawal";
 import PickerLogin from "../components/PickerLogin";
 import PickerDashboard from "../components/PickerDashboard";
 import GuardDashboard from "../components/GuardDashboard";
 import ProtectedRoute from "../components/ProtectedRoute";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../context/AuthContext";
 import { USER_ROLES } from "../config/api";
 
 function AppRouter() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -28,6 +28,7 @@ function AppRouter() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          background: "#f5f5f5",
         }}
       >
         <p>Cargando...</p>
@@ -35,18 +36,35 @@ function AppRouter() {
     );
   }
 
+  // Función para redirigir según el rol
+  const getDefaultRoute = () => {
+    if (!isAuthenticated || !user) return "/login";
+
+    switch (user.role) {
+      case "GUARDIAN":
+        return "/dashboard/guardia";
+      case "ADMIN":
+        return "/dashboard/admin";
+      case "PARENT":
+      default:
+        return "/dashboard/padre";
+    }
+  };
+
   return (
     <Router>
       <Routes>
         {/* Rutas públicas */}
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />}
+          element={
+            isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Login />
+          }
         />
         <Route
           path="/register"
           element={
-            isAuthenticated ? <Navigate to="/dashboard" /> : <Register />
+            isAuthenticated ? <Navigate to={getDefaultRoute()} /> : <Register />
           }
         />
 
@@ -58,7 +76,7 @@ function AppRouter() {
 
         {/* Dashboard para guardias */}
         <Route
-          path="/guard-dashboard"
+          path="/dashboard/guardia"
           element={
             <ProtectedRoute
               component={GuardDashboard}
@@ -67,12 +85,12 @@ function AppRouter() {
           }
         />
 
-        {/* Rutas protegidas */}
+        {/* Dashboard para padres */}
         <Route
-          path="/dashboard"
+          path="/dashboard/padre"
           element={
             <ProtectedRoute
-              component={Dashboard}
+              component={PadreDashboard}
               allowedRoles={[
                 USER_ROLES.PARENT,
                 USER_ROLES.GUARDIAN,
@@ -81,6 +99,31 @@ function AppRouter() {
             />
           }
         />
+
+        {/* Dashboard Admin - usa el mismo que padre por ahora */}
+        <Route
+          path="/dashboard/admin"
+          element={
+            <ProtectedRoute
+              component={PadreDashboard}
+              allowedRoles={[USER_ROLES.ADMIN]}
+            />
+          }
+        />
+
+        {/* Dashboard genérico - redirige según rol */}
+        <Route
+          path="/dashboard"
+          element={
+            isAuthenticated ? (
+              <Navigate to={getDefaultRoute()} replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
+        {/* Ruta para crear retiro */}
         <Route
           path="/withdraw/:childId"
           element={
@@ -96,15 +139,15 @@ function AppRouter() {
           path="/"
           element={
             isAuthenticated ? (
-              <Navigate to="/dashboard" />
+              <Navigate to={getDefaultRoute()} replace />
             ) : (
-              <Navigate to="/login" />
+              <Navigate to="/login" replace />
             )
           }
         />
 
         {/* Ruta no encontrada */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

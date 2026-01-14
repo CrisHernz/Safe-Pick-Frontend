@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
@@ -20,13 +20,17 @@ function Login() {
     try {
       const response = await login(email, password);
 
+      console.log("Login response:", response); // Debug
+
       // Redirigir según el rol del usuario
       if (response.role === "GUARDIAN") {
-        navigate("/guard-dashboard");
+        navigate("/dashboard/guardia");
       } else if (response.role === "ADMIN") {
-        navigate("/guard-dashboard");
+        navigate("/dashboard/admin");
+      } else if (response.role === "PARENT") {
+        navigate("/dashboard/padre");
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard/padre"); // Default
       }
     } catch (err) {
       setError(err.message || "Error de conexión con el servidor");
@@ -77,11 +81,11 @@ function Login() {
 
         <div className="login-footer">
           <p>
-            ¿No tienes cuenta? <a href="/register">Regístrate aquí</a>
+            ¿No tienes cuenta? <Link to="/register">Regístrate aquí</Link>
           </p>
           <p className="picker-login-link">
             ¿Eres un encargado temporal?{" "}
-            <a href="/picker-login">Ingresa aquí</a>
+            <Link to="/picker-login">Ingresa aquí</Link>
           </p>
         </div>
       </div>
