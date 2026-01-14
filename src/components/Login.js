@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
 import apiService from "../services/api.service";
 import authService from "../services/auth.service";
 import "./Login.css";
@@ -10,9 +11,54 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+=======
+import { useAuth } from "../hooks/useAuth";
+import { validation } from "../utils/validation";
+import "./Login.css";
 
-  const handleSubmit = async (e) => {
+function Login() {
+  const navigate = useNavigate();
+  const { login, loading, error, clearError } = useAuth();
+
+  // Estados para login normal
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [validationErrors, setValidationErrors] = useState({});
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (validationErrors.email) {
+      setValidationErrors((prev) => ({ ...prev, email: "" }));
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (validationErrors.password) {
+      setValidationErrors((prev) => ({ ...prev, password: "" }));
+    }
+  };
+
+  const validateNormalForm = () => {
+    const errors = {};
+
+    if (!validation.isValidEmail(email)) {
+      errors.email = "Email inválido";
+    }
+
+    if (!password) {
+      errors.password = "La contraseña es requerida";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+>>>>>>> Stashed changes
+
+  const handleNormalSubmit = async (e) => {
     e.preventDefault();
+<<<<<<< Updated upstream
     setLoading(true);
     setError("");
 
@@ -35,6 +81,24 @@ function Login() {
       };
       if (role && roleToPath[role]) {
         navigate(roleToPath[role]);
+=======
+    clearError();
+
+    if (!validateNormalForm()) {
+      return;
+    }
+
+    try {
+      const response = await login(email, password);
+
+      // Redirigir según el rol del usuario
+      if (response.role === "GUARDIAN") {
+        navigate("/guard-dashboard");
+      } else if (response.role === "ADMIN") {
+        navigate("/guard-dashboard"); // Admin también puede ser guardia
+      } else {
+        navigate("/dashboard");
+>>>>>>> Stashed changes
       }
     } catch (err) {
       setError(err.message || "Error de conexión con el servidor");
@@ -49,8 +113,14 @@ function Login() {
       <div className="login-card">
         <h1 className="login-title">SafePick</h1>
 
+<<<<<<< Updated upstream
         <form onSubmit={handleSubmit} className="login-form">
           {error && <div className="error-message">{error}</div>}
+=======
+        {/* Formulario de login normal */}
+        <form onSubmit={handleNormalSubmit} className="login-form">
+          {error && <div className="alert alert-error">{error}</div>}
+>>>>>>> Stashed changes
 
           <div className="form-group">
             <label htmlFor="email">Correo electrónico</label>
@@ -83,9 +153,21 @@ function Login() {
           </button>
         </form>
 
+<<<<<<< Updated upstream
         <p className="login-footer">
           ¿No tienes cuenta? <a href="#register">Regístrate</a>
         </p>
+=======
+        <div className="login-footer">
+          <p>
+            ¿No tienes cuenta? <a href="/register">Regístrate aquí</a>
+          </p>
+          <p className="picker-login-link">
+            ¿Eres un encargado temporal?{" "}
+            <a href="/picker-login">Ingresa aquí</a>
+          </p>
+        </div>
+>>>>>>> Stashed changes
       </div>
     </div>
   );
