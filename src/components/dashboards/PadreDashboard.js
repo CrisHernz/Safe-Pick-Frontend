@@ -23,6 +23,9 @@ export default function PadreDashboard() {
   const [credentials, setCredentials] = useState(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [telegramBotUsername, setTelegramBotUsername] = useState("");
+  const [telegramLinking, setTelegramLinking] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -105,6 +108,23 @@ export default function PadreDashboard() {
       // Recargar datos
       await loadData();
     } catch (err) {
+      // Verificar si es error de Telegram no configurado
+      if (
+        err.message?.includes("TELEGRAM_NOT_CONFIGURED") ||
+        err.message?.includes("Telegram")
+      ) {
+        try {
+          const errorData = JSON.parse(err.message);
+          if (errorData.code === "TELEGRAM_NOT_CONFIGURED") {
+            setTelegramBotUsername(errorData.botUsername);
+            setShowTelegramModal(true);
+            setShowModal(false);
+            return;
+          }
+        } catch (parseError) {
+          // Si no se puede parsear, mostrar error normal
+        }
+      }
       setError(err.message || "Error al crear la orden");
     } finally {
       setSubmitting(false);
@@ -575,6 +595,110 @@ export default function PadreDashboard() {
               >
                 Entendido
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Telegram Configuration Modal */}
+        {showTelegramModal && (
+          <div className="sp-modal-overlay">
+            <div className="sp-modal sp-telegram-modal">
+              <h2>📱 Configurar Notificaciones de Telegram</h2>
+              <p className="sp-telegram-explanation">
+                Para recibir notificaciones cuando tu hijo/a sea retirado,
+                necesitas vincular tu cuenta de Telegram.
+              </p>
+
+              <div className="sp-telegram-steps">
+                <div className="sp-telegram-step">
+                  <span className="sp-step-number">1</span>
+                  <div>
+                    <strong>Abre Telegram</strong>
+                    <p>En tu celular o computadora</p>
+                  </div>
+                </div>
+
+                <div className="sp-telegram-step">
+                  <span className="sp-step-number">2</span>
+                  <div>
+                    <strong>Busca el bot</strong>
+                    <p className="sp-telegram-bot">@{telegramBotUsername}</p>
+                  </div>
+                </div>
+
+                <div className="sp-telegram-step">
+                  <span className="sp-step-number">3</span>
+                  <div>
+                    <strong>Inicia el chat</strong>
+                    <p>
+                      Envía <code>/start</code> o cualquier mensaje
+                    </p>
+                  </div>
+                </div>
+
+                <div className="sp-telegram-step">
+                  <span className="sp-step-number">4</span>
+                  <div>
+                    <strong>Vuelve aquí</strong>
+                    <p>Y haz clic en "Verificar vinculación"</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="sp-telegram-actions">
+                <a
+                  href={`https://t.me/${telegramBotUsername}?start=USER_ID_${
+                    user.id || ""
+                  }`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sp-btn sp-btn-primary"
+                >
+                  📱 Abrir en Telegram
+                </a>
+
+                <button
+                  onClick={async () => {
+                    setTelegramLinking(true);
+                    try {
+                      await new Promise((resolve) => setTimeout(resolve, 3000));
+                      const userData = await apiService.getUserProfile();
+
+                      if (userData.telegramChatId) {
+                        setSuccess(
+                          "¡Telegram vinculado exitosamente! Ahora puedes crear la orden."
+                        );
+                        setShowTelegramModal(false);
+                        setShowModal(true);
+                      } else {
+                        setError(
+                          "No se detectó la vinculación. Asegúrate de haber enviado /start al bot."
+                        );
+                      }
+                    } catch (err) {
+                      setError("Error verificando vinculación: " + err.message);
+                    } finally {
+                      setTelegramLinking(false);
+                    }
+                  }}
+                  className="sp-btn sp-btn-secondary"
+                  disabled={telegramLinking}
+                >
+                  {telegramLinking
+                    ? "Verificando..."
+                    : "✓ Verificar vinculación"}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowTelegramModal(false);
+                    setShowModal(true);
+                  }}
+                  className="sp-btn sp-btn-text"
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           </div>
         )}

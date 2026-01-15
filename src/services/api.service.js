@@ -236,6 +236,15 @@ class ApiService {
   getPickerOrder() {
     return this.request("/withdrawals/picker/my-order");
   }
+
+  // User profile endpoints
+  getUserProfile() {
+    return this.request("/auth/me");
+  }
+
+  linkTelegramAccount(chatId) {
+    return this.request("/auth/telegram/link", "POST", { chatId });
+  }
 }
 
 const apiService = new ApiService();
