@@ -522,7 +522,6 @@ export default function PadreDashboard() {
                 <h2>✅ Credenciales Generadas</h2>
                 <p>Para recoger a: {credentials.childName}</p>
               </div>
-
               <div className="sp-credentials-box">
                 <div className="sp-credential-item">
                   <span className="sp-credential-label">ENCARGADO</span>
@@ -545,8 +544,7 @@ export default function PadreDashboard() {
                   </span>
                 </div>
               </div>
-
-              {/* QR Code Display */}
+              {/* QR Code Display
               {qrDataUrl && (
                 <div className="sp-qr-section">
                   <h3>Código QR Encriptado</h3>
@@ -558,8 +556,7 @@ export default function PadreDashboard() {
                     verificar
                   </p>
                 </div>
-              )}
-
+              )} */}
               <div className="sp-warning-box">
                 <span>⏰</span>
                 <div>
@@ -567,7 +564,6 @@ export default function PadreDashboard() {
                   <p>El código expira automáticamente después de esta hora</p>
                 </div>
               </div>
-
               <div className="sp-instructions">
                 <h4>Instrucciones para {credentials.pickerName}:</h4>
                 <ol>
@@ -585,7 +581,6 @@ export default function PadreDashboard() {
                   <li>El guardia verificará y completará el retiro</li>
                 </ol>
               </div>
-
               <button
                 onClick={() => {
                   setShowCredentials(false);
