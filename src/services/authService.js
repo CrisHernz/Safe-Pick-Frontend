@@ -17,6 +17,7 @@ export const authService = {
         role: userData.role || "PARENT",
         cedula: userData.cedula,
         phone: userData.phone,
+        institutionId: userData.institutionId,
       });
 
       if (response.token) {

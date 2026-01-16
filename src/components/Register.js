@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import PhoneInput from "./common/PhoneInput";
+import apiService from "../services/api.service";
+import {
+  validateCedulaEcuatoriana,
+  validateTelefonoEcuatoriano,
+  formatTelefonoEcuatoriano,
+} from "../utils/ecuadorValidation";
 import "./Register.css";
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/;
@@ -17,10 +23,65 @@ function Register() {
     confirmPassword: "",
     cedula: "",
     phone: "",
+    institutionId: "",
   });
 
   const [validationErrors, setValidationErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Estados para autocompletado de instituciones
+  const [institutionSearch, setInstitutionSearch] = useState("");
+  const [institutions, setInstitutions] = useState([]);
+  const [selectedInstitution, setSelectedInstitution] = useState(null);
+  const [showInstitutionDropdown, setShowInstitutionDropdown] = useState(false);
+  const [searchingInstitutions, setSearchingInstitutions] = useState(false);
+
+  // Debounce para búsqueda de instituciones
+  const searchInstitutions = useCallback(async (query) => {
+    if (query.length < 2) {
+      setInstitutions([]);
+      return;
+    }
+
+    setSearchingInstitutions(true);
+    try {
+      const results = await apiService.searchInstitutions(query);
+      setInstitutions(results || []);
+    } catch (err) {
+      console.error("Error buscando instituciones:", err);
+      setInstitutions([]);
+    } finally {
+      setSearchingInstitutions(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (institutionSearch && !selectedInstitution) {
+        searchInstitutions(institutionSearch);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [institutionSearch, selectedInstitution, searchInstitutions]);
+
+  const handleInstitutionSelect = (institution) => {
+    setSelectedInstitution(institution);
+    setInstitutionSearch(institution.name);
+    setFormData((prev) => ({ ...prev, institutionId: institution.id }));
+    setShowInstitutionDropdown(false);
+    if (validationErrors.institutionId) {
+      setValidationErrors((prev) => ({ ...prev, institutionId: "" }));
+    }
+  };
+
+  const handleInstitutionInputChange = (e) => {
+    const value = e.target.value;
+    setInstitutionSearch(value);
+    setSelectedInstitution(null);
+    setFormData((prev) => ({ ...prev, institutionId: "" }));
+    setShowInstitutionDropdown(true);
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -60,12 +121,16 @@ function Register() {
       errors.confirmPassword = "Las contrasenas no coinciden";
     }
 
-    if (!/^\d{8,13}$/.test(formData.cedula)) {
-      errors.cedula = "La cedula debe tener entre 8 y 13 digitos";
+    // Validación de cédula ecuatoriana
+    if (!validateCedulaEcuatoriana(formData.cedula)) {
+      errors.cedula =
+        "La cédula ecuatoriana no es válida. Debe tener 10 dígitos.";
     }
 
-    if (!/^\+\d{10,15}$/.test(formData.phone)) {
-      errors.phone = "Selecciona codigo y escribe un numero valido";
+    // Validación de teléfono ecuatoriano
+    if (!validateTelefonoEcuatoriano(formData.phone)) {
+      errors.phone =
+        "El teléfono debe tener formato ecuatoriano: +593XXXXXXXXX, 09XXXXXXXX";
     }
 
     setValidationErrors(errors);
@@ -86,8 +151,9 @@ function Register() {
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         cedula: formData.cedula,
-        phone: formData.phone,
+        phone: formatTelefonoEcuatoriano(formData.phone),
         role: "PARENT",
+        institutionId: formData.institutionId || undefined,
       });
 
       setSuccessMessage("Registro exitoso. Redirigiendo...");
@@ -174,6 +240,67 @@ function Register() {
             helperText="Selecciona el pais y luego escribe solo los numeros"
             error={validationErrors.phone}
           />
+
+          <div className="form-group institution-autocomplete">
+            <label htmlFor="institution">
+              Institucion educativa (opcional)
+            </label>
+            <div className="autocomplete-container">
+              <input
+                id="institution"
+                type="text"
+                value={institutionSearch}
+                onChange={handleInstitutionInputChange}
+                onFocus={() =>
+                  institutionSearch.length >= 2 &&
+                  setShowInstitutionDropdown(true)
+                }
+                onBlur={() =>
+                  setTimeout(() => setShowInstitutionDropdown(false), 200)
+                }
+                placeholder="Escribe para buscar..."
+                disabled={loading}
+                autoComplete="off"
+              />
+              {searchingInstitutions && (
+                <span className="search-indicator">Buscando...</span>
+              )}
+              {showInstitutionDropdown && institutions.length > 0 && (
+                <ul className="autocomplete-dropdown">
+                  {institutions.map((inst) => (
+                    <li
+                      key={inst.id}
+                      onClick={() => handleInstitutionSelect(inst)}
+                      className="autocomplete-item"
+                    >
+                      <span className="inst-name">{inst.name}</span>
+                      {inst.address && (
+                        <span className="inst-address">{inst.address}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {showInstitutionDropdown &&
+                institutionSearch.length >= 2 &&
+                institutions.length === 0 &&
+                !searchingInstitutions && (
+                  <ul className="autocomplete-dropdown">
+                    <li className="autocomplete-item no-results">
+                      No se encontraron instituciones
+                    </li>
+                  </ul>
+                )}
+            </div>
+            {selectedInstitution && (
+              <span className="selected-institution">
+                ✓ {selectedInstitution.name}
+              </span>
+            )}
+            <small className="input-hint">
+              Puedes dejarlo vacio y seleccionarlo despues
+            </small>
+          </div>
 
           <div className="form-group">
             <label htmlFor="password">Contrasena</label>

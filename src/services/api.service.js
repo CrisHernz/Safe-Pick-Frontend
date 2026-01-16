@@ -245,6 +245,128 @@ class ApiService {
   linkTelegramAccount(chatId) {
     return this.request("/auth/telegram/link", "POST", { chatId });
   }
+
+  // ============ INSTITUTIONS ENDPOINTS ============
+
+  // Búsqueda pública para autocompletado (sin auth)
+  searchInstitutions(query) {
+    return this.request(
+      `/institutions/search?q=${encodeURIComponent(query)}`,
+      "GET",
+      null,
+      false
+    );
+  }
+
+  // Lista pública de instituciones (sin auth)
+  getPublicInstitutions() {
+    return this.request("/institutions/public", "GET", null, false);
+  }
+
+  // Obtener todas las instituciones con estadísticas (admin/gestor)
+  getAllInstitutions() {
+    return this.request("/institutions");
+  }
+
+  // Obtener una institución por ID
+  getInstitutionById(id) {
+    return this.request(`/institutions/${id}`);
+  }
+
+  // Crear nueva institución (admin)
+  createInstitution(data) {
+    return this.request("/institutions", "POST", data);
+  }
+
+  // Actualizar institución
+  updateInstitution(id, data) {
+    return this.request(`/institutions/${id}`, "PUT", data);
+  }
+
+  // Desactivar institución (admin)
+  deleteInstitution(id) {
+    return this.request(`/institutions/${id}`, "DELETE");
+  }
+
+  // Activar institución (admin)
+  activateInstitution(id) {
+    return this.request(`/institutions/${id}/activate`, "PUT");
+  }
+
+  // Obtener usuarios de una institución
+  getInstitutionUsers(id, role = null) {
+    const params = role ? `?role=${role}` : "";
+    return this.request(`/institutions/${id}/users${params}`);
+  }
+
+  // Obtener niños de una institución
+  getInstitutionChildren(id) {
+    return this.request(`/institutions/${id}/children`);
+  }
+
+  // ============ USERS MANAGEMENT ENDPOINTS ============
+
+  // Obtener todos los usuarios (admin)
+  getAllUsers(filters = {}) {
+    const params = new URLSearchParams(filters).toString();
+    return this.request(`/users${params ? "?" + params : ""}`);
+  }
+
+  // Obtener todos los gestores (admin)
+  getGestores() {
+    return this.request("/users/gestores");
+  }
+
+  // Obtener guardias de mi institución (gestor)
+  getMyInstitutionGuardians() {
+    return this.request("/users/my-institution/guardians");
+  }
+
+  // Obtener padres de mi institución (gestor)
+  getMyInstitutionParents() {
+    return this.request("/users/my-institution/parents");
+  }
+
+  // Obtener usuario por ID
+  getUserById(id) {
+    return this.request(`/users/${id}`);
+  }
+
+  // Crear usuario (admin crea gestores, gestor crea guardias)
+  createUser(data) {
+    return this.request("/users", "POST", data);
+  }
+
+  // Actualizar usuario
+  updateUser(id, data) {
+    return this.request(`/users/${id}`, "PUT", data);
+  }
+
+  // Activar usuario
+  activateUser(id) {
+    return this.request(`/users/${id}/activate`, "PATCH");
+  }
+
+  // Desactivar usuario
+  deactivateUser(id) {
+    return this.request(`/users/${id}/deactivate`, "PATCH");
+  }
+
+  // Asignar institución a usuario (admin)
+  assignInstitutionToUser(userId, institutionId) {
+    return this.request(`/users/${userId}/assign-institution`, "PATCH", {
+      institutionId,
+    });
+  }
+
+  // Asignar hijo a padre (gestor)
+  assignChildToParent(parentId, childData) {
+    return this.request(
+      `/users/parents/${parentId}/children`,
+      "POST",
+      childData
+    );
+  }
 }
 
 const apiService = new ApiService();

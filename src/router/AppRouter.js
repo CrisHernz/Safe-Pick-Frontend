@@ -8,6 +8,8 @@ import {
 import Login from "../components/Login";
 import Register from "../components/Register";
 import PadreDashboard from "../components/dashboards/PadreDashboard";
+import AdminDashboard from "../components/dashboards/AdminDashboard";
+import GestorDashboard from "../components/dashboards/GestorDashboard";
 import CreateWithdrawal from "../components/CreateWithdrawal";
 import PickerLogin from "../components/PickerLogin";
 import PickerDashboard from "../components/PickerDashboard";
@@ -45,6 +47,8 @@ function AppRouter() {
         return "/dashboard/guardia";
       case "ADMIN":
         return "/dashboard/admin";
+      case "GESTOR":
+        return "/dashboard/gestor";
       case "PARENT":
       default:
         return "/dashboard/padre";
@@ -100,13 +104,24 @@ function AppRouter() {
           }
         />
 
-        {/* Dashboard Admin - usa el mismo que padre por ahora */}
+        {/* Dashboard Admin */}
         <Route
           path="/dashboard/admin"
           element={
             <ProtectedRoute
-              component={PadreDashboard}
+              component={AdminDashboard}
               allowedRoles={[USER_ROLES.ADMIN]}
+            />
+          }
+        />
+
+        {/* Dashboard Gestor */}
+        <Route
+          path="/dashboard/gestor"
+          element={
+            <ProtectedRoute
+              component={GestorDashboard}
+              allowedRoles={[USER_ROLES.GESTOR]}
             />
           }
         />

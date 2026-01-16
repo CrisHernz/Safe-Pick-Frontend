@@ -25,6 +25,31 @@ export const API_ENDPOINTS = {
     VALIDATE_QR: "/withdrawals/validate-qr",
     PICKER_ORDER: "/withdrawals/picker/my-order",
   },
+  INSTITUTIONS: {
+    SEARCH: "/institutions/search",
+    PUBLIC_LIST: "/institutions/public",
+    GET_ALL: "/institutions",
+    GET_BY_ID: (id) => `/institutions/${id}`,
+    CREATE: "/institutions",
+    UPDATE: (id) => `/institutions/${id}`,
+    DELETE: (id) => `/institutions/${id}`,
+    ACTIVATE: (id) => `/institutions/${id}/activate`,
+    GET_USERS: (id) => `/institutions/${id}/users`,
+    GET_CHILDREN: (id) => `/institutions/${id}/children`,
+  },
+  USERS: {
+    GET_ALL: "/users",
+    GET_GESTORES: "/users/gestores",
+    GET_BY_ID: (id) => `/users/${id}`,
+    CREATE: "/users",
+    UPDATE: (id) => `/users/${id}`,
+    ACTIVATE: (id) => `/users/${id}/activate`,
+    DEACTIVATE: (id) => `/users/${id}/deactivate`,
+    ASSIGN_INSTITUTION: (id) => `/users/${id}/assign-institution`,
+    MY_INSTITUTION_GUARDIANS: "/users/my-institution/guardians",
+    MY_INSTITUTION_PARENTS: "/users/my-institution/parents",
+    ASSIGN_CHILD: (parentId) => `/users/parents/${parentId}/children`,
+  },
 };
 
 export const WITHDRAWAL_STATUS = {
@@ -39,6 +64,7 @@ export const USER_ROLES = {
   GUARDIAN: "GUARDIAN",
   ADMIN: "ADMIN",
   PICKER: "PICKER",
+  GESTOR: "GESTOR",
 };
 
 export const RELATIONSHIPS = [
