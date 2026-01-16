@@ -21,7 +21,7 @@ export default function PadreDashboard() {
   const [success, setSuccess] = useState("");
   const [showCredentials, setShowCredentials] = useState(false);
   const [credentials, setCredentials] = useState(null);
-  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [_qrDataUrl, setQrDataUrl] = useState(""); // eslint-disable-line no-unused-vars
   const [submitting, setSubmitting] = useState(false);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [telegramBotUsername, setTelegramBotUsername] = useState("");

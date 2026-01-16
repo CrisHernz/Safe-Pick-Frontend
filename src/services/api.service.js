@@ -58,21 +58,9 @@ class ApiService {
     return this.request("/auth/signup", "POST", userData, false);
   }
 
-  // Admin endpoints
+  // Admin endpoints (legacy - usar los nuevos endpoints de /institutions y /users)
   getInstitutions() {
-    return this.request("/admin/institutions");
-  }
-
-  createInstitution(data) {
-    return this.request("/admin/institutions", "POST", data);
-  }
-
-  updateInstitution(id, data) {
-    return this.request(`/admin/institutions/${id}`, "PUT", data);
-  }
-
-  deleteInstitution(id) {
-    return this.request(`/admin/institutions/${id}`, "DELETE");
+    return this.request("/institutions");
   }
 
   getUsers(filters = {}) {
@@ -153,11 +141,11 @@ class ApiService {
     return this.request("/withdrawals", "POST", data);
   }
 
-  updateAuthorizedPerson(id, data) {
+  updateAuthorizedPerson(_id, _data) {
     return Promise.reject(new Error("Not implemented"));
   }
 
-  deleteAuthorizedPerson(id) {
+  deleteAuthorizedPerson(_id) {
     return Promise.reject(new Error("Not implemented"));
   }
 
