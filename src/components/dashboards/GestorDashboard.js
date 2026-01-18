@@ -305,18 +305,18 @@ export default function GestorDashboard() {
                     ) : (
                       guardians.map((guardian) => (
                         <tr key={guardian.id}>
-                          <td>{guardian.name}</td>
-                          <td>{guardian.email}</td>
-                          <td>{guardian.cedula || "-"}</td>
-                          <td>{guardian.phone || "-"}</td>
-                          <td>
+                          <td data-label="Nombre">{guardian.name}</td>
+                          <td data-label="Email">{guardian.email}</td>
+                          <td data-label="Cédula">{guardian.cedula || "-"}</td>
+                          <td data-label="Teléfono">{guardian.phone || "-"}</td>
+                          <td data-label="Estado">
                             <span
                               className={`gestor-status-badge ${guardian.isActive ? "active" : "inactive"}`}
                             >
                               {guardian.isActive ? "Activo" : "Inactivo"}
                             </span>
                           </td>
-                          <td>
+                          <td data-label="Registrado">
                             {new Date(guardian.createdAt).toLocaleDateString()}
                           </td>
                           <td className="gestor-actions-cell">

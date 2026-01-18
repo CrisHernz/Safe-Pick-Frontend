@@ -309,18 +309,18 @@ export default function AdminDashboard() {
                     ) : (
                       gestores.map((gestor) => (
                         <tr key={gestor.id}>
-                          <td>{gestor.name}</td>
-                          <td>{gestor.email}</td>
-                          <td>{gestor.cedula || "-"}</td>
-                          <td>{gestor.phone || "-"}</td>
-                          <td>
+                          <td data-label="Nombre">{gestor.name}</td>
+                          <td data-label="Email">{gestor.email}</td>
+                          <td data-label="Cédula">{gestor.cedula || "-"}</td>
+                          <td data-label="Teléfono">{gestor.phone || "-"}</td>
+                          <td data-label="Institución">
                             {gestor.institution?.name || (
                               <span className="admin-text-muted">
                                 Sin asignar
                               </span>
                             )}
                           </td>
-                          <td>
+                          <td data-label="Estado">
                             <span
                               className={`admin-status-badge ${gestor.isActive ? "active" : "inactive"}`}
                             >

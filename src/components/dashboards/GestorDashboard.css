@@ -648,33 +648,68 @@
   }
 
   .gestor-actions-cell button {
-    width: 100%;
+    width: auto;
   }
 
   .gestor-table-container {
-    margin: 0 -16px;
-    padding: 0 16px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
   }
 
-  .gestor-table {
-    min-width: 800px;
-    font-size: 0.8rem;
+  .gestor-table thead {
+    display: none;
   }
 
-  .gestor-table th,
+  .gestor-table,
+  .gestor-table tbody,
+  .gestor-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .gestor-table tr {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f0f0f0;
+  }
+
+  .gestor-table tr:hover {
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
   .gestor-table td {
-    padding: 10px 12px;
-    white-space: nowrap;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border: none;
+    font-size: 0.875rem;
   }
 
-  .gestor-table th {
-    font-size: 0.7rem;
+  .gestor-table td:before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #666;
+    flex-shrink: 0;
+    margin-right: 12px;
   }
 
-  .gestor-table td {
-    font-size: 0.8rem;
+  .gestor-actions-cell {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    justify-content: flex-end;
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .gestor-actions-cell:before {
+    display: none;
   }
 
   .gestor-modal-overlay {
