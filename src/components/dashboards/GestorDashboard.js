@@ -282,61 +282,58 @@ export default function GestorDashboard() {
                 </button>
               </div>
 
-              <div className="gestor-table-container">
-                <table className="gestor-table">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th>
-                      <th>Email</th>
-                      <th>Cédula</th>
-                      <th>Teléfono</th>
-                      <th>Estado</th>
-                      <th>Registrado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {guardians.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="gestor-no-data">
-                          No hay guardias registrados en tu institución
-                        </td>
-                      </tr>
-                    ) : (
-                      guardians.map((guardian) => (
-                        <tr key={guardian.id}>
-                          <td data-label="Nombre">{guardian.name}</td>
-                          <td data-label="Email">{guardian.email}</td>
-                          <td data-label="Cédula">{guardian.cedula || "-"}</td>
-                          <td data-label="Teléfono">{guardian.phone || "-"}</td>
-                          <td data-label="Estado">
-                            <span
-                              className={`gestor-status-badge ${guardian.isActive ? "active" : "inactive"}`}
-                            >
-                              {guardian.isActive ? "Activo" : "Inactivo"}
-                            </span>
-                          </td>
-                          <td data-label="Registrado">
-                            {new Date(guardian.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="gestor-actions-cell">
-                            <button
-                              className={`gestor-btn-small ${guardian.isActive ? "gestor-btn-danger" : "gestor-btn-success"}`}
-                              onClick={() =>
-                                handleToggleGuardianStatus(
-                                  guardian.id,
-                                  guardian.isActive,
-                                )
-                              }
-                            >
-                              {guardian.isActive ? "Desactivar" : "Activar"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div className="gestor-cards-grid">
+                {guardians.length === 0 ? (
+                  <p className="gestor-no-data">
+                    No hay guardias registrados en tu institución
+                  </p>
+                ) : (
+                  guardians.map((guardian) => (
+                    <div
+                      key={guardian.id}
+                      className={`gestor-parent-card ${!guardian.isActive ? "inactive" : ""}`}
+                    >
+                      <div className="gestor-card-header">
+                        <h3>🛡️ {guardian.name}</h3>
+                        <span
+                          className={`gestor-status-badge ${guardian.isActive ? "active" : "inactive"}`}
+                        >
+                          {guardian.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                      <div className="gestor-card-body">
+                        <p>
+                          <strong>📧 Email:</strong> {guardian.email}
+                        </p>
+                        <p>
+                          <strong>🪪 Cédula:</strong>{" "}
+                          {guardian.cedula || "No registrada"}
+                        </p>
+                        <p>
+                          <strong>📞 Teléfono:</strong>{" "}
+                          {guardian.phone || "No registrado"}
+                        </p>
+                        <p>
+                          <strong>📅 Registrado:</strong>{" "}
+                          {new Date(guardian.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="gestor-card-actions">
+                        <button
+                          className={`gestor-btn-small ${guardian.isActive ? "gestor-btn-danger" : "gestor-btn-success"}`}
+                          onClick={() =>
+                            handleToggleGuardianStatus(
+                              guardian.id,
+                              guardian.isActive,
+                            )
+                          }
+                        >
+                          {guardian.isActive ? "Desactivar" : "Activar"}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

@@ -286,74 +286,66 @@ export default function AdminDashboard() {
                 </button>
               </div>
 
-              <div className="admin-table-container">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Nombre</th>
-                      <th>Email</th>
-                      <th>Cédula</th>
-                      <th>Teléfono</th>
-                      <th>Institución</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {gestores.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="admin-no-data">
-                          No hay gestores registrados
-                        </td>
-                      </tr>
-                    ) : (
-                      gestores.map((gestor) => (
-                        <tr key={gestor.id}>
-                          <td data-label="Nombre">{gestor.name}</td>
-                          <td data-label="Email">{gestor.email}</td>
-                          <td data-label="Cédula">{gestor.cedula || "-"}</td>
-                          <td data-label="Teléfono">{gestor.phone || "-"}</td>
-                          <td data-label="Institución">
-                            {gestor.institution?.name || (
-                              <span className="admin-text-muted">
-                                Sin asignar
-                              </span>
-                            )}
-                          </td>
-                          <td data-label="Estado">
-                            <span
-                              className={`admin-status-badge ${gestor.isActive ? "active" : "inactive"}`}
-                            >
-                              {gestor.isActive ? "Activo" : "Inactivo"}
+              <div className="admin-cards-grid">
+                {gestores.length === 0 ? (
+                  <p className="admin-no-data">No hay gestores registrados</p>
+                ) : (
+                  gestores.map((gestor) => (
+                    <div
+                      key={gestor.id}
+                      className={`admin-institution-card ${!gestor.isActive ? "inactive" : ""}`}
+                    >
+                      <div className="admin-card-header">
+                        <h3>{gestor.name}</h3>
+                        <span
+                          className={`admin-status-badge ${gestor.isActive ? "active" : "inactive"}`}
+                        >
+                          {gestor.isActive ? "Activo" : "Inactivo"}
+                        </span>
+                      </div>
+                      <div className="admin-card-body">
+                        <p>
+                          <strong>📧 Email:</strong> {gestor.email}
+                        </p>
+                        <p>
+                          <strong>🪪 Cédula:</strong>{" "}
+                          {gestor.cedula || "No registrada"}
+                        </p>
+                        <p>
+                          <strong>📞 Teléfono:</strong>{" "}
+                          {gestor.phone || "No registrado"}
+                        </p>
+                        <p>
+                          <strong>🏫 Institución:</strong>{" "}
+                          {gestor.institution?.name || (
+                            <span className="admin-text-muted">
+                              Sin asignar
                             </span>
-                          </td>
-                          <td className="admin-actions-cell">
-                            <button
-                              className="admin-btn-small admin-btn-secondary"
-                              onClick={() => {
-                                setSelectedUser(gestor);
-                                setShowAssignInstitutionModal(true);
-                              }}
-                            >
-                              Asignar Institución
-                            </button>
-                            <button
-                              className={`admin-btn-small ${gestor.isActive ? "admin-btn-danger" : "admin-btn-success"}`}
-                              onClick={() =>
-                                handleToggleUserStatus(
-                                  gestor.id,
-                                  gestor.isActive,
-                                )
-                              }
-                            >
-                              {gestor.isActive ? "Desactivar" : "Activar"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                          )}
+                        </p>
+                      </div>
+                      <div className="admin-card-actions">
+                        <button
+                          className="admin-btn-small admin-btn-secondary"
+                          onClick={() => {
+                            setSelectedUser(gestor);
+                            setShowAssignInstitutionModal(true);
+                          }}
+                        >
+                          Asignar Institución
+                        </button>
+                        <button
+                          className={`admin-btn-small ${gestor.isActive ? "admin-btn-danger" : "admin-btn-success"}`}
+                          onClick={() =>
+                            handleToggleUserStatus(gestor.id, gestor.isActive)
+                          }
+                        >
+                          {gestor.isActive ? "Desactivar" : "Activar"}
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

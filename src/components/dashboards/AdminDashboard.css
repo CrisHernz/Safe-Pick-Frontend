@@ -635,11 +635,14 @@
   }
 
   .admin-card-actions {
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
   .admin-card-actions button {
-    width: 100%;
+    width: auto;
+    min-width: 110px;
   }
 
   .admin-actions-cell {
@@ -648,67 +651,6 @@
 
   .admin-actions-cell button {
     width: auto;
-  }
-
-  .admin-table-container {
-    margin: 0;
-    padding: 0;
-    overflow: visible;
-  }
-
-  .admin-table thead {
-    display: none;
-  }
-
-  .admin-table,
-  .admin-table tbody,
-  .admin-table tr {
-    display: block;
-    width: 100%;
-  }
-
-  .admin-table tr {
-    background: #fff;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid #f0f0f0;
-  }
-
-  .admin-table tr:hover {
-    background: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .admin-table td {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border: none;
-    font-size: 0.875rem;
-  }
-
-  .admin-table td:before {
-    content: attr(data-label);
-    font-weight: 600;
-    color: #666;
-    flex-shrink: 0;
-    margin-right: 12px;
-  }
-
-  .admin-actions-cell {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    justify-content: flex-end;
-    padding-top: 12px;
-    margin-top: 8px;
-    border-top: 1px solid #f0f0f0;
-  }
-
-  .admin-actions-cell:before {
-    display: none;
   }
 
   .admin-modal-overlay {
