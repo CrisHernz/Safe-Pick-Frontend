@@ -48,7 +48,7 @@ function Register() {
       const results = await apiService.searchInstitutions(query);
       setInstitutions(results || []);
     } catch (err) {
-      console.error("Error buscando instituciones:", err);
+      // Error silencioso - no exponer detalles en consola
       setInstitutions([]);
     } finally {
       setSearchingInstitutions(false);
@@ -159,7 +159,7 @@ function Register() {
       setSuccessMessage("Registro exitoso. Redirigiendo...");
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
-      console.error("Error en registro", err);
+      // Error manejado por AuthContext
     }
   };
 

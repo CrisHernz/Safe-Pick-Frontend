@@ -57,11 +57,15 @@ export default function GestorDashboard() {
       setParents(parentsData || []);
     } catch (err) {
       // Si es error de autorización, mostrar pantalla de no autorizado
-      if (err.message === "Unauthorized" || err.message?.includes("401") || err.message?.includes("No autorizado")) {
+      if (
+        err.message === "Unauthorized" ||
+        err.message?.includes("401") ||
+        err.message?.includes("No autorizado")
+      ) {
         setUnauthorized(true);
         logout(); // Limpiar sesión
       } else {
-        setError("Error al cargar datos: " + err.message);
+        setError("No se pudieron cargar los datos. Intenta nuevamente.");
       }
     } finally {
       setLoading(false);
@@ -84,7 +88,7 @@ export default function GestorDashboard() {
     }
     if (!PASSWORD_RULE.test(guardianForm.password)) {
       setError(
-        "La contraseña debe tener mínimo 12 caracteres e incluir mayúsculas, minúsculas, números y símbolos"
+        "La contraseña debe tener mínimo 12 caracteres e incluir mayúsculas, minúsculas, números y símbolos",
       );
       return;
     }
@@ -102,7 +106,7 @@ export default function GestorDashboard() {
       !validateTelefonoEcuatoriano(guardianForm.phone)
     ) {
       setError(
-        "El teléfono debe tener formato ecuatoriano: +593XXXXXXXXX o 09XXXXXXXX"
+        "El teléfono debe tener formato ecuatoriano: +593XXXXXXXXX o 09XXXXXXXX",
       );
       return;
     }
@@ -126,7 +130,7 @@ export default function GestorDashboard() {
       });
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo crear el guardia. Verifica los datos.");
     }
   };
 
@@ -156,7 +160,7 @@ export default function GestorDashboard() {
       setSelectedParent(null);
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo asignar el niño. Verifica los datos.");
     }
   };
 
@@ -172,7 +176,7 @@ export default function GestorDashboard() {
       }
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo cambiar el estado del guardia.");
     }
   };
 
@@ -220,7 +224,13 @@ export default function GestorDashboard() {
         </div>
         <div className="header-right">
           <span className="user-name">{user?.name}</span>
-          <button onClick={() => { logout(); navigate("/login"); }} className="btn-logout">
+          <button
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+            className="btn-logout"
+          >
             Cerrar sesión
           </button>
         </div>
@@ -308,7 +318,7 @@ export default function GestorDashboard() {
                               onClick={() =>
                                 handleToggleGuardianStatus(
                                   guardian.id,
-                                  guardian.isActive
+                                  guardian.isActive,
                                 )
                               }
                             >

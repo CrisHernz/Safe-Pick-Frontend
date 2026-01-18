@@ -63,11 +63,15 @@ export default function AdminDashboard() {
       setInstitutions(institutionsData || []);
     } catch (err) {
       // Si es error de autorización, mostrar pantalla de no autorizado
-      if (err.message === "Unauthorized" || err.message?.includes("401") || err.message?.includes("No autorizado")) {
+      if (
+        err.message === "Unauthorized" ||
+        err.message?.includes("401") ||
+        err.message?.includes("No autorizado")
+      ) {
         setUnauthorized(true);
         logout(); // Limpiar sesión
       } else {
-        setError("Error al cargar datos: " + err.message);
+        setError("No se pudieron cargar los datos. Intenta nuevamente.");
       }
     } finally {
       setLoading(false);
@@ -90,7 +94,7 @@ export default function AdminDashboard() {
     }
     if (!PASSWORD_RULE.test(gestorForm.password)) {
       setError(
-        "La contraseña debe tener mínimo 12 caracteres e incluir mayúsculas, minúsculas, números y símbolos"
+        "La contraseña debe tener mínimo 12 caracteres e incluir mayúsculas, minúsculas, números y símbolos",
       );
       return;
     }
@@ -102,7 +106,7 @@ export default function AdminDashboard() {
     // Validación de teléfono ecuatoriano
     if (gestorForm.phone && !validateTelefonoEcuatoriano(gestorForm.phone)) {
       setError(
-        "El teléfono debe tener formato ecuatoriano: +593XXXXXXXXX o 09XXXXXXXX"
+        "El teléfono debe tener formato ecuatoriano: +593XXXXXXXXX o 09XXXXXXXX",
       );
       return;
     }
@@ -127,7 +131,7 @@ export default function AdminDashboard() {
       });
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo crear el gestor. Verifica los datos.");
     }
   };
 
@@ -148,7 +152,7 @@ export default function AdminDashboard() {
       setInstitutionForm({ name: "", address: "", phone: "", email: "" });
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo crear la institución. Verifica los datos.");
     }
   };
 
@@ -164,7 +168,7 @@ export default function AdminDashboard() {
       }
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo cambiar el estado del usuario.");
     }
   };
 
@@ -179,7 +183,7 @@ export default function AdminDashboard() {
       setSelectedUser(null);
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo asignar la institución.");
     }
   };
 
@@ -195,7 +199,7 @@ export default function AdminDashboard() {
       }
       loadData();
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo cambiar el estado de la institución.");
     }
   };
 
@@ -224,7 +228,13 @@ export default function AdminDashboard() {
         </div>
         <div className="header-right">
           <span className="user-name">{user?.name}</span>
-          <button onClick={() => { logout(); navigate("/login"); }} className="btn-logout">
+          <button
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+            className="btn-logout"
+          >
             Cerrar sesión
           </button>
         </div>
@@ -323,7 +333,7 @@ export default function AdminDashboard() {
                               onClick={() =>
                                 handleToggleUserStatus(
                                   gestor.id,
-                                  gestor.isActive
+                                  gestor.isActive,
                                 )
                               }
                             >
@@ -393,7 +403,7 @@ export default function AdminDashboard() {
                           onClick={() =>
                             handleToggleInstitutionStatus(
                               inst.id,
-                              inst.isActive
+                              inst.isActive,
                             )
                           }
                         >

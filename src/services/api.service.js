@@ -54,112 +54,22 @@ class ApiService {
     return this.request("/auth/login", "POST", { email, password }, false);
   }
 
-  signup(userData) {
-    return this.request("/auth/signup", "POST", userData, false);
+  register(userData) {
+    return this.request("/auth/register", "POST", userData, false);
   }
 
-  // Admin endpoints (legacy - usar los nuevos endpoints de /institutions y /users)
-  getInstitutions() {
-    return this.request("/institutions");
-  }
-
-  getUsers(filters = {}) {
-    const params = new URLSearchParams(filters).toString();
-    return this.request(`/admin/users${params ? "?" + params : ""}`);
-  }
-
-  toggleUserStatus(id, isActive) {
-    return this.request(`/admin/users/${id}/status`, "PUT", { isActive });
-  }
-
-  getSystemStats() {
-    return this.request("/admin/stats");
-  }
-
-  getWithdrawalHistory(filters = {}) {
-    const params = new URLSearchParams(filters).toString();
-    return this.request(`/admin/withdrawals${params ? "?" + params : ""}`);
-  }
-
-  // School Admin endpoints
-  registerParent(data) {
-    return this.request("/school-admin/parents", "POST", data);
-  }
-
-  getParents() {
-    return this.request("/school-admin/parents");
-  }
-
-  registerStudent(data) {
-    return this.request("/school-admin/students", "POST", data);
-  }
-
-  getStudents() {
-    return this.request("/school-admin/students");
-  }
-
-  updateStudent(id, data) {
-    return this.request(`/school-admin/students/${id}`, "PUT", data);
-  }
-
-  deleteStudent(id) {
-    return this.request(`/school-admin/students/${id}`, "DELETE");
-  }
-
-  registerGuard(data) {
-    return this.request("/school-admin/guards", "POST", data);
-  }
-
-  getGuards() {
-    return this.request("/school-admin/guards");
-  }
-
-  getSchoolStats() {
-    return this.request("/school-admin/stats");
-  }
-
-  getSchoolWithdrawals(filters = {}) {
-    const params = new URLSearchParams(filters).toString();
-    return this.request(
-      `/school-admin/withdrawals${params ? "?" + params : ""}`
-    );
-  }
-
-  // Parent endpoints
+  // ============ PARENT ENDPOINTS ============
   getMyChildren() {
     return this.request("/children");
   }
 
-  // Personas autorizadas vienen en las órdenes de retiro
-  getAuthorizedPersons() {
-    // Los pickers están incluidos en withdrawals, retornar array vacío
-    return Promise.resolve([]);
-  }
-
-  registerAuthorizedPerson(data) {
-    // Esta funcionalidad se hace al crear una orden de retiro
-    return this.request("/withdrawals", "POST", data);
-  }
-
-  updateAuthorizedPerson(_id, _data) {
-    return Promise.reject(new Error("Not implemented"));
-  }
-
-  deleteAuthorizedPerson(_id) {
-    return Promise.reject(new Error("Not implemented"));
-  }
-
-  generateWithdrawalCode(data) {
-    return this.request("/withdrawals", "POST", data);
-  }
-
-  getWithdrawalCodes(filters = {}) {
-    const params = new URLSearchParams(filters).toString();
-    return this.request(`/withdrawals${params ? "?" + params : ""}`);
-  }
-
   createWithdrawalOrder(data) {
     return this.request("/withdrawals", "POST", data);
+  }
+
+  getWithdrawalOrders(filters = {}) {
+    const params = new URLSearchParams(filters).toString();
+    return this.request(`/withdrawals${params ? "?" + params : ""}`);
   }
 
   getPickerCredentials(orderId) {
@@ -170,54 +80,24 @@ class ApiService {
     return this.request(`/withdrawals/${orderId}/cancel`, "POST");
   }
 
-  getParentWithdrawalHistory(studentId) {
-    return this.request(`/parent/withdrawal-history/${studentId}`);
+  // ============ GUARDIAN ENDPOINTS ============
+  validateQR(qrToken) {
+    return this.request("/withdrawals/validate-qr", "POST", { qrToken });
   }
 
-  // Guard endpoints
-  validateCode(code) {
-    return this.request("/guard/validate", "POST", { code });
-  }
-
-  confirmWithdrawal(id, guardNotes) {
-    return this.request("/guard/confirm", "POST", { id, guardNotes });
-  }
-
-  rejectWithdrawal(id, rejectionReason) {
-    return this.request(`/guard/reject/${id}`, "POST", { rejectionReason });
-  }
-
-  getMyValidations(date) {
-    const params = date ? `?date=${date}` : "";
-    return this.request(`/guard/validations${params}`);
-  }
-
-  getGuardStats() {
-    return this.request("/guard/stats");
-  }
-
-  getPendingCodes() {
-    return this.request("/guard/pending");
-  }
-
-  // Guard QR validation endpoints
-  validateQR(encryptedData) {
-    return this.request("/withdrawals/validate-qr", "POST", { encryptedData });
-  }
-
-  completeWithdrawal(orderId) {
+  scanAndCompleteWithdrawal(qrToken) {
     return this.request("/withdrawals/guardian/scan-and-complete", "POST", {
-      orderId,
+      qrToken,
     });
   }
 
-  // Picker endpoints
+  // ============ PICKER ENDPOINTS ============
   loginPicker(cedula, temporaryCode) {
     return this.request(
       "/auth/login-picker",
       "POST",
       { cedula, temporaryCode },
-      false
+      false,
     );
   }
 
@@ -225,7 +105,7 @@ class ApiService {
     return this.request("/withdrawals/picker/my-order");
   }
 
-  // User profile endpoints
+  // ============ USER PROFILE ENDPOINTS ============
   getUserProfile() {
     return this.request("/auth/me");
   }
@@ -234,7 +114,7 @@ class ApiService {
     return this.request("/auth/telegram/link", "POST", { chatId });
   }
 
-  // ============ INSTITUTIONS ENDPOINTS ============
+  // ============ INSTITUTIONS ENDPOINTS (ADMIN) ============
 
   // Búsqueda pública para autocompletado (sin auth)
   searchInstitutions(query) {
@@ -242,7 +122,7 @@ class ApiService {
       `/institutions/search?q=${encodeURIComponent(query)}`,
       "GET",
       null,
-      false
+      false,
     );
   }
 
@@ -292,7 +172,7 @@ class ApiService {
     return this.request(`/institutions/${id}/children`);
   }
 
-  // ============ USERS MANAGEMENT ENDPOINTS ============
+  // ============ USERS MANAGEMENT ENDPOINTS (ADMIN/GESTOR) ============
 
   // Obtener todos los usuarios (admin)
   getAllUsers(filters = {}) {
@@ -315,7 +195,7 @@ class ApiService {
     return this.request("/users/my-institution/parents");
   }
 
-  // Obtener usuario por ID
+  // Obtener usuario por ID (admin/gestor)
   getUserById(id) {
     return this.request(`/users/${id}`);
   }
@@ -325,17 +205,17 @@ class ApiService {
     return this.request("/users", "POST", data);
   }
 
-  // Actualizar usuario
+  // Actualizar usuario (admin/gestor)
   updateUser(id, data) {
     return this.request(`/users/${id}`, "PUT", data);
   }
 
-  // Activar usuario
+  // Activar usuario (admin/gestor)
   activateUser(id) {
     return this.request(`/users/${id}/activate`, "PATCH");
   }
 
-  // Desactivar usuario
+  // Desactivar usuario (admin/gestor)
   deactivateUser(id) {
     return this.request(`/users/${id}/deactivate`, "PATCH");
   }
@@ -352,7 +232,7 @@ class ApiService {
     return this.request(
       `/users/parents/${parentId}/children`,
       "POST",
-      childData
+      childData,
     );
   }
 }

@@ -475,17 +475,121 @@
   text-decoration: underline;
 }
 
-/* Responsive */
-@media (min-width: 481px) {
+/* ========== Mobile First Responsive ========== */
+
+/* Extra small devices (360px and down) */
+@media (max-width: 360px) {
+  .pk-main {
+    padding: 8px;
+  }
+
+  .pk-header {
+    padding: 12px;
+  }
+
+  .pk-header-info h1 {
+    font-size: 1rem;
+  }
+
+  .pk-role-badge {
+    font-size: 0.625rem;
+    padding: 2px 6px;
+  }
+
+  .pk-btn-logout {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
   .pk-qr-container img {
-    width: 240px;
-    height: 240px;
+    width: 160px;
+    height: 160px;
+  }
+
+  .pk-status-icon {
+    font-size: 2.5rem;
+  }
+
+  .pk-status-card h2 {
+    font-size: 1.125rem;
+  }
+
+  .pk-status-card p {
+    font-size: 0.8125rem;
+  }
+
+  .pk-info-card,
+  .pk-qr-card,
+  .pk-instructions,
+  .pk-contact-card,
+  .pk-status-card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  .pk-btn {
+    padding: 10px 16px;
+    font-size: 0.8125rem;
+    width: 100%;
+  }
+
+  .pk-instruction-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .pk-instruction-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .pk-instruction-item p {
+    font-size: 0.8125rem;
+  }
+
+  .pk-credential-code {
+    font-size: 1.25rem;
+    padding: 10px;
+  }
+
+  .pk-info-label {
+    font-size: 0.6875rem;
+  }
+
+  .pk-info-value {
+    font-size: 0.9375rem;
   }
 }
 
-@media (max-width: 360px) {
+/* Small devices (480px and down) */
+@media (max-width: 480px) {
   .pk-main {
     padding: 12px;
+    padding-bottom: 32px;
+  }
+
+  .pk-header {
+    padding: 14px 16px;
+  }
+
+  .pk-header-content {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .pk-header-info {
+    align-items: center;
+  }
+
+  .pk-header-info h1 {
+    font-size: 1.125rem;
+  }
+
+  .pk-btn-logout {
+    width: 100%;
+    justify-content: center;
   }
 
   .pk-qr-container img {
@@ -493,10 +597,90 @@
     height: 180px;
   }
 
+  .pk-status-card {
+    padding: 28px 20px;
+  }
+
+  .pk-status-icon {
+    font-size: 3rem;
+  }
+
   .pk-info-card,
   .pk-qr-card,
   .pk-instructions,
   .pk-contact-card {
-    padding: 16px;
+    padding: 18px;
+  }
+
+  .pk-btn {
+    width: 100%;
+    padding: 14px 20px;
+  }
+
+  .pk-credential-code {
+    font-size: 1.5rem;
+    padding: 12px;
+  }
+
+  .pk-instructions h3 {
+    font-size: 0.9375rem;
+  }
+
+  .pk-contact-card h3 {
+    font-size: 0.875rem;
+  }
+
+  .pk-contact-item {
+    font-size: 0.8125rem;
+  }
+
+  .pk-error-card {
+    padding: 24px 20px;
+    max-width: 100%;
+  }
+
+  .pk-error-icon {
+    font-size: 2.5rem;
+  }
+
+  .pk-loading-card {
+    padding: 32px;
+    margin: 16px;
+  }
+}
+
+/* Medium devices (tablets) */
+@media (min-width: 481px) {
+  .pk-qr-container img {
+    width: 240px;
+    height: 240px;
+  }
+
+  .pk-main {
+    max-width: 480px;
+    padding: 20px;
+  }
+}
+
+/* Tablets and up */
+@media (min-width: 768px) {
+  .pk-main {
+    max-width: 520px;
+  }
+}
+
+/* Landscape phones */
+@media (max-width: 896px) and (orientation: landscape) {
+  .pk-header {
+    padding: 10px 16px;
+  }
+
+  .pk-status-card {
+    padding: 24px 20px;
+  }
+
+  .pk-qr-container img {
+    width: 180px;
+    height: 180px;
   }
 }

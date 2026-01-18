@@ -25,7 +25,7 @@ function GuardDashboard() {
       if (html5QrcodeScannerRef.current) {
         html5QrcodeScannerRef.current
           .clear()
-          .catch((err) => console.error("Error al limpiar escáner:", err));
+          .catch(() => {});
       }
     };
   }, []);
@@ -38,7 +38,7 @@ function GuardDashboard() {
         .then(() => {
           html5QrcodeScannerRef.current = null;
         })
-        .catch((err) => console.error("Error al detener escáner:", err));
+        .catch(() => {});
     }
   }, []);
 
@@ -57,14 +57,12 @@ function GuardDashboard() {
     ) {
       return;
     }
-    console.warn("Advertencia de escaneo:", scanError);
+    // Error silencioso de escaneo
   }, []);
 
   // Manejar escaneo exitoso
   const handleScanSuccess = useCallback(
     async (qrToken) => {
-      console.log("QR escaneado, procesando...");
-
       // Detener escáner
       stopScanning();
       setStep("validating");
@@ -84,14 +82,14 @@ function GuardDashboard() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({ qrToken }),
-          }
+          },
         );
 
         const validateData = await validateResponse.json();
 
         if (!validateResponse.ok) {
           throw new Error(
-            validateData.message || "QR inválido o no autorizado"
+            validateData.message || "QR inválido o no autorizado",
           );
         }
 
@@ -103,14 +101,13 @@ function GuardDashboard() {
         setIdConfirmed(false);
         setStep("verified");
       } catch (err) {
-        console.error("Error al validar QR:", err);
-        setError(err.message || "Error al procesar el código QR");
+        setError("No se pudo validar el código QR. Intenta nuevamente.");
         setStep("error");
       } finally {
         setLoading(false);
       }
     },
-    [stopScanning]
+    [stopScanning],
   );
 
   // Iniciar escáner QR
@@ -139,7 +136,7 @@ function GuardDashboard() {
               facingMode: { ideal: "environment" },
             },
           },
-          /* verbose= */ false
+          /* verbose= */ false,
         );
 
         scanner.render(handleScanSuccess, handleScanError);
@@ -172,7 +169,7 @@ function GuardDashboard() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ qrToken: decodedData.raw }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -185,8 +182,7 @@ function GuardDashboard() {
       setCompletedOrder(data);
       setStep("completed");
     } catch (err) {
-      console.error("Error al completar retiro:", err);
-      setError(err.message || "Error al completar el retiro");
+      setError("No se pudo completar el retiro. Intenta nuevamente.");
       setStep("error");
     } finally {
       setLoading(false);
@@ -442,7 +438,7 @@ function GuardDashboard() {
                       {
                         dateStyle: "short",
                         timeStyle: "short",
-                      }
+                      },
                     )}
                   </strong>
                 </div>

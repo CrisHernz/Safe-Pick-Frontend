@@ -25,7 +25,7 @@ function PickerDashboard() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -55,7 +55,9 @@ function PickerDashboard() {
         setQrDataUrl(qrUrl);
       }
     } catch (err) {
-      setError(err.message);
+      setError(
+        "No se pudo cargar la información. Tu sesión puede haber expirado.",
+      );
     } finally {
       setLoading(false);
     }

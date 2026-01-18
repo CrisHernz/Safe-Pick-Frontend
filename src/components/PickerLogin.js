@@ -52,7 +52,7 @@ function PickerLogin() {
       // Redirigir al dashboard del picker
       navigate("/picker-dashboard");
     } catch (err) {
-      setError(err.message || "Error al iniciar sesión");
+      setError("Credenciales inválidas o código expirado.");
     } finally {
       setLoading(false);
     }

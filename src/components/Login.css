@@ -235,12 +235,112 @@
   margin-top: 10px;
 }
 
-@media (max-width: 480px) {
+/* ========== Mobile First Responsive ========== */
+
+/* Extra small devices (360px and down) */
+@media (max-width: 360px) {
+  .login-container {
+    padding: 12px;
+  }
+
   .login-card {
-    padding: 30px 20px;
+    padding: 24px 16px;
+    border-radius: 12px;
   }
 
   .login-title {
-    font-size: 20px;
+    font-size: 1.25rem;
+    margin-bottom: 24px;
+  }
+
+  .toggle-btn {
+    padding: 8px;
+    font-size: 0.6875rem;
+  }
+
+  .form-group label {
+    font-size: 0.8125rem;
+  }
+
+  .form-group input {
+    padding: 10px 12px;
+    font-size: 0.9375rem;
+  }
+
+  .login-button,
+  .btn {
+    padding: 10px;
+    font-size: 0.875rem;
+  }
+
+  .error-message,
+  .alert {
+    font-size: 0.75rem;
+    padding: 10px;
+  }
+
+  .picker-info-box {
+    font-size: 0.6875rem;
+    padding: 10px;
+  }
+
+  .login-footer {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Small devices (480px and down) */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-card {
+    padding: 28px 20px;
+    max-width: 100%;
+  }
+
+  .login-title {
+    font-size: 1.375rem;
+  }
+
+  .login-type-toggle {
+    margin-bottom: 24px;
+  }
+
+  .toggle-btn {
+    padding: 10px 8px;
+    font-size: 0.75rem;
+  }
+
+  .form-group input {
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  .login-button {
+    padding: 12px;
+    font-size: 0.9375rem;
+  }
+
+  .picker-info-box {
+    font-size: 0.75rem;
+  }
+
+  .login-footer p {
+    font-size: 0.875rem;
+  }
+}
+
+/* Landscape phones */
+@media (max-width: 896px) and (orientation: landscape) {
+  .login-container {
+    padding: 12px 24px;
+    min-height: auto;
+  }
+
+  .login-card {
+    padding: 24px 32px;
+    max-width: 440px;
   }
 }

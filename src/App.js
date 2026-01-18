@@ -11,9 +11,7 @@ import {
 } from "react-router-dom";
 import {
   PadreDashboard,
-  EncargadoDashboard,
   GuardiaDashboard,
-  AdminEscolarDashboard,
   AdminDashboard,
   GestorDashboard,
 } from "./components/dashboards";
@@ -24,22 +22,17 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Rutas Públicas - Colocarlas primero para evitar conflictos */}
+          {/* Rutas Públicas */}
           <Route path="/picker-login" element={<PickerLogin />} />
           <Route path="/picker-dashboard" element={<PickerDashboard />} />
           <Route path="/register" element={<Register />} />
           {/* Rutas Principales */}
           <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} /> {/* Alias por si acaso */}
+          <Route path="/login" element={<Login />} />
           {/* Dashboards por Rol */}
           <Route path="/dashboard/padre" element={<PadreDashboard />} />
-          <Route path="/dashboard/encargado" element={<EncargadoDashboard />} />
           <Route path="/dashboard/guardia" element={<GuardiaDashboard />} />
           <Route path="/dashboard/gestor" element={<GestorDashboard />} />
-          <Route
-            path="/dashboard/admin-escolar"
-            element={<AdminEscolarDashboard />}
-          />
           <Route path="/dashboard/admin" element={<AdminDashboard />} />
           {/* Redirección por defecto */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -20,8 +20,6 @@ function Login() {
     try {
       const response = await login(email, password);
 
-      console.log("Login response:", response); // Debug
-
       // Redirigir según el rol del usuario
       if (response.role === "GUARDIAN") {
         navigate("/dashboard/guardia");
@@ -33,13 +31,12 @@ function Login() {
         navigate("/dashboard/padre");
       } else {
         // Rol no reconocido - mostrar error
-        setError(`El rol "${response.role || 'desconocido'}" no está registrado correctamente en el sistema. Por favor, contacte con soporte técnico.`);
+        setError("No se pudo acceder. Contacta con soporte.");
         setLoading(false);
         return;
       }
     } catch (err) {
-      setError(err.message || "Error de conexión con el servidor");
-      console.error("Error en login:", err);
+      setError("Credenciales incorrectas o error de conexión.");
     } finally {
       setLoading(false);
     }
