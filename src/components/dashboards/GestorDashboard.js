@@ -221,9 +221,9 @@ export default function GestorDashboard() {
         <div className="header-left">
           <h1>📋 SafePick Gestor</h1>
           <span className="user-badge gestor">Gestor</span>
+          <span className="user-name">{user?.name}</span>
         </div>
         <div className="header-right">
-          <span className="user-name">{user?.name}</span>
           <button
             onClick={() => {
               logout();

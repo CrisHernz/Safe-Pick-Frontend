@@ -109,16 +109,16 @@ function Register() {
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = "Correo electronico invalido";
+      errors.email = "Correo electrónico inválido";
     }
 
     if (!PASSWORD_RULE.test(formData.password)) {
       errors.password =
-        "La contrasena debe tener minimo 12 caracteres e incluir mayusculas, minusculas, numeros y simbolos";
+        "La contraseña debe tener mínimo 12 caracteres e incluir mayúsculas, minúsculas, números y símbolos";
     }
 
     if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Las contrasenas no coinciden";
+      errors.confirmPassword = "Las contraseñas no coinciden";
     }
 
     // Validación de cédula ecuatoriana
@@ -192,7 +192,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Correo electronico</label>
+            <label htmlFor="email">Correo electrónico</label>
             <input
               id="email"
               name="email"
@@ -209,7 +209,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="cedula">Cedula</label>
+            <label htmlFor="cedula">Cédula</label>
             <input
               id="cedula"
               name="cedula"
@@ -229,21 +229,23 @@ function Register() {
             )}
           </div>
 
-          <PhoneInput
-            label="Telefono del padre"
-            id="parent-phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handlePhoneChange}
-            disabled={loading}
-            required
-            helperText="Selecciona el pais y luego escribe solo los numeros"
-            error={validationErrors.phone}
-          />
+          <div className="form-group">
+            <PhoneInput
+              label="Teléfono del padre"
+              id="parent-phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              disabled={loading}
+              required
+              helperText="Selecciona el país y luego escribe solo los números"
+              error={validationErrors.phone}
+            />
+          </div>
 
           <div className="form-group institution-autocomplete">
             <label htmlFor="institution">
-              Institucion educativa (opcional)
+              Institución educativa (opcional)
             </label>
             <div className="autocomplete-container">
               <input
@@ -298,12 +300,12 @@ function Register() {
               </span>
             )}
             <small className="input-hint">
-              Puedes dejarlo vacio y seleccionarlo despues
+              Puedes dejarlo vacío y seleccionarlo después
             </small>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contrasena</label>
+            <label htmlFor="password">Contraseña</label>
             <input
               id="password"
               name="password"
@@ -315,8 +317,8 @@ function Register() {
               required
             />
             <small className="input-hint">
-              Minimo 12 caracteres, incluye mayuscula, minuscula, numero y
-              simbolo
+              Mínimo 12 caracteres, incluye mayúscula, minúscula, número y
+              símbolo
             </small>
             {validationErrors.password && (
               <span className="error-message">{validationErrors.password}</span>
@@ -324,14 +326,14 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirmar contrasena</label>
+            <label htmlFor="confirmPassword">Confirmar contraseña</label>
             <input
               id="confirmPassword"
               name="confirmPassword"
               type="password"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Repite tu contrasena"
+              placeholder="Repite tu contraseña"
               disabled={loading}
               required
             />
@@ -348,7 +350,7 @@ function Register() {
         </form>
 
         <p className="register-footer">
-          ¿Ya tienes cuenta? <Link to="/login">Inicia sesion</Link>
+          ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
         </p>
       </div>
     </div>

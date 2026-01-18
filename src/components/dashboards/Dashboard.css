@@ -341,39 +341,49 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 18px 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   margin-bottom: 24px;
 }
 
 .header-left {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 1;
 }
 
 .header-left h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
+  color: #111;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .user-name {
   font-weight: 500;
-  color: #444;
+  font-size: 0.9rem;
+  color: #333;
 }
 
 .user-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
   font-weight: 600;
-  text-transform: uppercase;
+  width: fit-content;
 }
 
 .user-badge.admin {
@@ -393,7 +403,9 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s;
 }
 
 .btn-logout:hover {
@@ -898,6 +910,34 @@
     padding: 8px;
   }
 
+  .dashboard-header {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .header-left {
+    gap: 4px;
+  }
+
+  .header-left h1 {
+    font-size: 1.1rem;
+  }
+
+  .user-badge {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+  }
+
+  .user-name {
+    font-size: 0.8rem;
+  }
+
+  .btn-logout {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+
   .dashboard-title {
     font-size: 1.25rem;
   }
@@ -964,22 +1004,44 @@
   }
 
   .dashboard-header {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border-radius: 14px;
   }
 
   .header-left {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .header-left h1 {
+    font-size: 1.2rem;
+  }
+
+  .user-badge {
+    padding: 3px 8px;
+    font-size: 0.72rem;
+  }
+
+  .user-name {
+    font-size: 0.85rem;
   }
 
   .header-right {
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
+    flex-shrink: 0;
+    align-items: center;
+  }
+
+  .btn-logout {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
   }
 
   .dashboard-title {

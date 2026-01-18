@@ -243,9 +243,8 @@ export default function PadreDashboard() {
         <div className="sp-header-content">
           <div className="sp-header-info">
             <h1>SafePick</h1>
-            <p>Hola, {user.name || "Padre"}</p>
-          </div>
-          <div className="sp-header-actions">
+            <span className="sp-role-badge">👨‍👩‍👧 Padre/Madre</span>
+            <p className="sp-user-name">{user.name || "Usuario"}</p>
             <button
               onClick={() => {
                 setPendingOrderData(null);
@@ -259,10 +258,12 @@ export default function PadreDashboard() {
                   : "Vincular Telegram para notificaciones"
               }
             >
-              {hasTelegram ? "📱✓" : "📱"}
+              {hasTelegram ? "📱✓" : "📱 Vincular Telegram"}
             </button>
+          </div>
+          <div className="sp-header-actions">
             <button onClick={handleLogout} className="sp-btn-logout">
-              Salir
+              Cerrar sesión
             </button>
           </div>
         </div>
@@ -506,20 +507,18 @@ export default function PadreDashboard() {
                   </select>
                 </div>
 
-                <div className="sp-form-group">
-                  <PhoneInput
-                    label="Teléfono de contacto"
-                    id="picker-phone"
-                    name="pickerPhone"
-                    value={formData.pickerPhone}
-                    onChange={(phoneValue) =>
-                      setFormData({ ...formData, pickerPhone: phoneValue })
-                    }
-                    required
-                    disabled={submitting}
-                    helperText="Selecciona el país y escribe solo los dígitos"
-                  />
-                </div>
+                <PhoneInput
+                  label="Teléfono de contacto"
+                  id="picker-phone"
+                  name="pickerPhone"
+                  value={formData.pickerPhone}
+                  onChange={(phoneValue) =>
+                    setFormData({ ...formData, pickerPhone: phoneValue })
+                  }
+                  required
+                  disabled={submitting}
+                  helperText="Selecciona el país y escribe solo los dígitos"
+                />
 
                 {error && (
                   <div className="sp-alert sp-alert-error">{error}</div>

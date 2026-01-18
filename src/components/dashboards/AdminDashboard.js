@@ -225,9 +225,9 @@ export default function AdminDashboard() {
         <div className="header-left">
           <h1>🛡️ SafePick Admin</h1>
           <span className="user-badge admin">Administrador</span>
+          <span className="user-name">{user?.name}</span>
         </div>
         <div className="header-right">
-          <span className="user-name">{user?.name}</span>
           <button
             onClick={() => {
               logout();

@@ -18,14 +18,14 @@ const DEFAULT_COUNTRIES = [
   },
   {
     iso2: "MX",
-    name: "Mexico",
+    name: "México",
     dialCode: "+52",
     maxLength: 10,
     example: "5512345678",
   },
   {
     iso2: "PE",
-    name: "Peru",
+    name: "Perú",
     dialCode: "+51",
     maxLength: 9,
     example: "912345678",
@@ -53,7 +53,7 @@ const DEFAULT_COUNTRIES = [
   },
   {
     iso2: "ES",
-    name: "Espana",
+    name: "España",
     dialCode: "+34",
     maxLength: 9,
     example: "612345678",
@@ -63,7 +63,7 @@ const DEFAULT_COUNTRIES = [
 const sanitizeDigits = (value = "") => value.replace(/\D/g, "");
 
 function PhoneInput({
-  label = "Telefono",
+  label = "Teléfono",
   id = "phone-input",
   name = "phone",
   value = "",
@@ -71,7 +71,7 @@ function PhoneInput({
   required = false,
   disabled = false,
   error = "",
-  helperText = "Ingresa solo numeros despues del codigo del pais.",
+  helperText = "Ingresa solo números después del código del país.",
   countries = DEFAULT_COUNTRIES,
 }) {
   const defaultCountry = useMemo(() => countries[0], [countries]);
@@ -97,7 +97,7 @@ function PhoneInput({
     }
 
     const match = countries.find((country) =>
-      value.startsWith(country.dialCode)
+      value.startsWith(country.dialCode),
     );
     const targetCountry = match || defaultCountry;
     const localDigits = match
@@ -181,7 +181,7 @@ function PhoneInput({
       </div>
 
       <div className="phone-input-hint">
-        {selectedCountry.dialCode} • {selectedCountry.maxLength || ""} digitos
+        {selectedCountry.dialCode} • {selectedCountry.maxLength || ""} dígitos
       </div>
 
       {helperText && <p className="phone-input-helper">{helperText}</p>}

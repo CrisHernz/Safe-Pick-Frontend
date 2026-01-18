@@ -23,9 +23,7 @@ function GuardDashboard() {
   useEffect(() => {
     return () => {
       if (html5QrcodeScannerRef.current) {
-        html5QrcodeScannerRef.current
-          .clear()
-          .catch(() => {});
+        html5QrcodeScannerRef.current.clear().catch(() => {});
       }
     };
   }, []);
@@ -211,14 +209,14 @@ function GuardDashboard() {
       {/* Header */}
       <header className="gd-header">
         <div className="gd-header-content">
-          <div className="gd-header-info">
+          <div className="gd-header-left">
             <h1>SafePick</h1>
             <span className="gd-role-badge">🛡️ Guardia</span>
-          </div>
-          <div className="gd-header-user">
             <span className="gd-user-name">{user?.name}</span>
+          </div>
+          <div className="gd-header-right">
             <button onClick={handleLogout} className="gd-btn-logout">
-              Salir
+              Cerrar sesión
             </button>
           </div>
         </div>
