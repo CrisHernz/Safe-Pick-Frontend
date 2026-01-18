@@ -651,6 +651,32 @@
     width: 100%;
   }
 
+  .gestor-table-container {
+    margin: 0 -16px;
+    padding: 0 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .gestor-table {
+    min-width: 800px;
+    font-size: 0.8rem;
+  }
+
+  .gestor-table th,
+  .gestor-table td {
+    padding: 10px 12px;
+    white-space: nowrap;
+  }
+
+  .gestor-table th {
+    font-size: 0.7rem;
+  }
+
+  .gestor-table td {
+    font-size: 0.8rem;
+  }
+
   .gestor-modal-overlay {
     padding: 0;
     align-items: flex-end;
