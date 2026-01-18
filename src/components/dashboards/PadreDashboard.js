@@ -245,6 +245,8 @@ export default function PadreDashboard() {
             <h1>SafePick</h1>
             <span className="sp-role-badge">👨‍👩‍👧 Padre/Madre</span>
             <p className="sp-user-name">{user.name || "Usuario"}</p>
+          </div>
+          <div className="sp-header-actions">
             <button
               onClick={() => {
                 setPendingOrderData(null);
@@ -260,8 +262,6 @@ export default function PadreDashboard() {
             >
               {hasTelegram ? "📱✓" : "📱 Vincular Telegram"}
             </button>
-          </div>
-          <div className="sp-header-actions">
             <button onClick={handleLogout} className="sp-btn-logout">
               Cerrar sesión
             </button>

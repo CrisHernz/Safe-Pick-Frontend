@@ -95,6 +95,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 12px;
 }
 
 .sp-btn-telegram {
@@ -982,7 +983,8 @@
 
   .sp-tab {
     padding: 8px 6px;
-    min-width: 48px;
+    min-width: 0;
+    flex: 1;
   }
 
   .sp-tab-icon {
@@ -1131,11 +1133,9 @@
   }
 
   .sp-tabs {
-    gap: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding-bottom: 4px;
+    gap: 8px;
+    overflow-x: visible;
+    width: 100%;
   }
 
   .sp-tabs::-webkit-scrollbar {
@@ -1144,8 +1144,8 @@
 
   .sp-tab {
     padding: 10px 12px;
-    flex-shrink: 0;
-    flex: 0 0 auto;
+    flex: 1;
+    min-width: 0;
   }
 
   .sp-tab-text {

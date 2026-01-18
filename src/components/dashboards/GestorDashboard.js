@@ -7,7 +7,7 @@ import {
   validateTelefonoEcuatoriano,
   formatTelefonoEcuatoriano,
 } from "../../utils/ecuadorValidation";
-import "./Dashboard.css";
+import "./GestorDashboard.css";
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/;
 
@@ -202,11 +202,14 @@ export default function GestorDashboard() {
   // Si no está autorizado, redirigir al login
   if (unauthorized) {
     return (
-      <div className="dashboard-container">
-        <div className="unauthorized-screen">
+      <div className="gestor-dashboard">
+        <div className="gestor-unauthorized">
           <h2>⚠️ Sesión Expirada</h2>
           <p>Tu sesión ha expirado o no tienes permisos para acceder.</p>
-          <button onClick={() => navigate("/login")} className="btn-primary">
+          <button
+            onClick={() => navigate("/login")}
+            className="gestor-btn-primary"
+          >
             Ir al Login
           </button>
         </div>
@@ -215,41 +218,45 @@ export default function GestorDashboard() {
   }
 
   return (
-    <div className="dashboard-container">
+    <div className="gestor-dashboard">
       {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-left">
-          <h1>📋 SafePick Gestor</h1>
-          <span className="user-badge gestor">Gestor</span>
-          <span className="user-name">{user?.name}</span>
-        </div>
-        <div className="header-right">
-          <button
-            onClick={() => {
-              logout();
-              navigate("/login");
-            }}
-            className="btn-logout"
-          >
-            Cerrar sesión
-          </button>
+      <header className="gestor-header">
+        <div className="gestor-header-content">
+          <div className="gestor-header-left">
+            <h1>📋 SafePick Gestor</h1>
+            <span className="gestor-role-badge">Gestor</span>
+            <span className="gestor-user-name">{user?.name}</span>
+          </div>
+          <div className="gestor-header-right">
+            <button
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+              className="gestor-btn-logout"
+            >
+              Cerrar sesión
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Alerts */}
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {error && <div className="gestor-alert gestor-alert-error">{error}</div>}
+      {success && (
+        <div className="gestor-alert gestor-alert-success">{success}</div>
+      )}
 
       {/* Tabs */}
-      <div className="tabs-container">
+      <div className="gestor-tabs">
         <button
-          className={`tab-btn ${activeTab === "guardians" ? "active" : ""}`}
+          className={`gestor-tab ${activeTab === "guardians" ? "active" : ""}`}
           onClick={() => setActiveTab("guardians")}
         >
           🛡️ Guardias
         </button>
         <button
-          className={`tab-btn ${activeTab === "parents" ? "active" : ""}`}
+          className={`gestor-tab ${activeTab === "parents" ? "active" : ""}`}
           onClick={() => setActiveTab("parents")}
         >
           👨‍👩‍👧‍👦 Padres y Niños
@@ -257,26 +264,26 @@ export default function GestorDashboard() {
       </div>
 
       {loading ? (
-        <div className="loading-state">
+        <div className="gestor-loading">
           <p>Cargando datos...</p>
         </div>
       ) : (
-        <div className="dashboard-content">
+        <div className="gestor-content">
           {/* Tab: Guardias */}
           {activeTab === "guardians" && (
-            <div className="tab-content">
-              <div className="section-header">
+            <div className="gestor-section">
+              <div className="gestor-section-header">
                 <h2>Gestión de Guardias de mi Institución</h2>
                 <button
-                  className="btn-primary"
+                  className="gestor-btn-primary"
                   onClick={() => setShowCreateGuardianModal(true)}
                 >
                   + Nuevo Guardia
                 </button>
               </div>
 
-              <div className="table-container">
-                <table className="data-table">
+              <div className="gestor-table-container">
+                <table className="gestor-table">
                   <thead>
                     <tr>
                       <th>Nombre</th>
@@ -291,7 +298,7 @@ export default function GestorDashboard() {
                   <tbody>
                     {guardians.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="no-data">
+                        <td colSpan="7" className="gestor-no-data">
                           No hay guardias registrados en tu institución
                         </td>
                       </tr>
@@ -304,7 +311,7 @@ export default function GestorDashboard() {
                           <td>{guardian.phone || "-"}</td>
                           <td>
                             <span
-                              className={`status-badge ${guardian.isActive ? "active" : "inactive"}`}
+                              className={`gestor-status-badge ${guardian.isActive ? "active" : "inactive"}`}
                             >
                               {guardian.isActive ? "Activo" : "Inactivo"}
                             </span>
@@ -312,9 +319,9 @@ export default function GestorDashboard() {
                           <td>
                             {new Date(guardian.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="actions-cell">
+                          <td className="gestor-actions-cell">
                             <button
-                              className={`btn-small ${guardian.isActive ? "btn-danger" : "btn-success"}`}
+                              className={`gestor-btn-small ${guardian.isActive ? "gestor-btn-danger" : "gestor-btn-success"}`}
                               onClick={() =>
                                 handleToggleGuardianStatus(
                                   guardian.id,
@@ -336,23 +343,23 @@ export default function GestorDashboard() {
 
           {/* Tab: Padres y Niños */}
           {activeTab === "parents" && (
-            <div className="tab-content">
-              <div className="section-header">
+            <div className="gestor-section">
+              <div className="gestor-section-header">
                 <h2>Padres de Familia y sus Hijos</h2>
               </div>
 
-              <div className="cards-grid parents-grid">
+              <div className="gestor-cards-grid gestor-parents-grid">
                 {parents.length === 0 ? (
-                  <p className="no-data">
+                  <p className="gestor-no-data">
                     No hay padres registrados en tu institución
                   </p>
                 ) : (
                   parents.map((parent) => (
-                    <div key={parent.id} className="parent-card">
-                      <div className="card-header">
+                    <div key={parent.id} className="gestor-parent-card">
+                      <div className="gestor-card-header">
                         <h3>👤 {parent.name}</h3>
                       </div>
-                      <div className="card-body">
+                      <div className="gestor-card-body">
                         <p>
                           <strong>📧 Email:</strong> {parent.email}
                         </p>
@@ -365,29 +372,31 @@ export default function GestorDashboard() {
                           {parent.phone || "No registrado"}
                         </p>
 
-                        <div className="children-section">
+                        <div className="gestor-children-section">
                           <h4>👶 Hijos registrados:</h4>
                           {parent.children && parent.children.length > 0 ? (
-                            <ul className="children-list">
+                            <ul className="gestor-children-list">
                               {parent.children.map((child) => (
                                 <li key={child.id}>
-                                  <span className="child-name">
+                                  <span className="gestor-child-name">
                                     {child.name}
                                   </span>
-                                  <span className="child-grade">
+                                  <span className="gestor-child-grade">
                                     {child.grade}
                                   </span>
                                 </li>
                               ))}
                             </ul>
                           ) : (
-                            <p className="no-children">Sin hijos asignados</p>
+                            <p className="gestor-no-children">
+                              Sin hijos asignados
+                            </p>
                           )}
                         </div>
                       </div>
-                      <div className="card-actions">
+                      <div className="gestor-card-actions">
                         <button
-                          className="btn-primary btn-small"
+                          className="gestor-btn-primary gestor-btn-small"
                           onClick={() => openAssignChildModal(parent)}
                         >
                           + Agregar Hijo
@@ -405,21 +414,24 @@ export default function GestorDashboard() {
       {/* Modal: Crear Guardia */}
       {showCreateGuardianModal && (
         <div
-          className="modal-overlay"
+          className="gestor-modal-overlay"
           onClick={() => setShowCreateGuardianModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+          <div
+            className="gestor-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="gestor-modal-header">
               <h2>Crear Nuevo Guardia</h2>
               <button
-                className="modal-close"
+                className="gestor-modal-close"
                 onClick={() => setShowCreateGuardianModal(false)}
               >
                 ×
               </button>
             </div>
-            <form onSubmit={handleCreateGuardian} className="modal-form">
-              <div className="form-group">
+            <form onSubmit={handleCreateGuardian} className="gestor-modal-form">
+              <div className="gestor-form-group">
                 <label>Nombre completo *</label>
                 <input
                   type="text"
@@ -431,7 +443,7 @@ export default function GestorDashboard() {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="gestor-form-group">
                 <label>Email *</label>
                 <input
                   type="email"
@@ -443,7 +455,7 @@ export default function GestorDashboard() {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="gestor-form-group">
                 <label>Contraseña *</label>
                 <input
                   type="password"
@@ -461,8 +473,8 @@ export default function GestorDashboard() {
                   Incluir mayúsculas, minúsculas, números y símbolos (@$!%*?&)
                 </small>
               </div>
-              <div className="form-row">
-                <div className="form-group">
+              <div className="gestor-form-row">
+                <div className="gestor-form-group">
                   <label>Cédula</label>
                   <input
                     type="text"
@@ -477,7 +489,7 @@ export default function GestorDashboard() {
                     maxLength={13}
                   />
                 </div>
-                <div className="form-group">
+                <div className="gestor-form-group">
                   <label>Teléfono</label>
                   <input
                     type="text"
@@ -492,15 +504,15 @@ export default function GestorDashboard() {
                   />
                 </div>
               </div>
-              <div className="modal-actions">
+              <div className="gestor-modal-actions">
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="gestor-btn-secondary"
                   onClick={() => setShowCreateGuardianModal(false)}
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="gestor-btn-primary">
                   Crear Guardia
                 </button>
               </div>
@@ -512,24 +524,27 @@ export default function GestorDashboard() {
       {/* Modal: Asignar Hijo */}
       {showAssignChildModal && selectedParent && (
         <div
-          className="modal-overlay"
+          className="gestor-modal-overlay"
           onClick={() => setShowAssignChildModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+          <div
+            className="gestor-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="gestor-modal-header">
               <h2>Agregar Hijo</h2>
               <button
-                className="modal-close"
+                className="gestor-modal-close"
                 onClick={() => setShowAssignChildModal(false)}
               >
                 ×
               </button>
             </div>
-            <div className="modal-subtitle">
+            <div className="gestor-modal-subtitle">
               Padre: <strong>{selectedParent.name}</strong>
             </div>
-            <form onSubmit={handleAssignChild} className="modal-form">
-              <div className="form-group">
+            <form onSubmit={handleAssignChild} className="gestor-modal-form">
+              <div className="gestor-form-group">
                 <label>Nombre del niño *</label>
                 <input
                   type="text"
@@ -541,7 +556,7 @@ export default function GestorDashboard() {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="gestor-form-group">
                 <label>Grado *</label>
                 <select
                   value={childForm.grade}
@@ -558,15 +573,15 @@ export default function GestorDashboard() {
                   ))}
                 </select>
               </div>
-              <div className="modal-actions">
+              <div className="gestor-modal-actions">
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="gestor-btn-secondary"
                   onClick={() => setShowAssignChildModal(false)}
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="gestor-btn-primary">
                   Agregar Hijo
                 </button>
               </div>

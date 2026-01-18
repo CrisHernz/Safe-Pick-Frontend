@@ -7,7 +7,7 @@ import {
   validateTelefonoEcuatoriano,
   formatTelefonoEcuatoriano,
 } from "../../utils/ecuadorValidation";
-import "./Dashboard.css";
+import "./AdminDashboard.css";
 
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/;
 
@@ -206,11 +206,14 @@ export default function AdminDashboard() {
   // Si no está autorizado, redirigir al login
   if (unauthorized) {
     return (
-      <div className="dashboard-container">
-        <div className="unauthorized-screen">
+      <div className="admin-dashboard">
+        <div className="admin-unauthorized">
           <h2>⚠️ Sesión Expirada</h2>
           <p>Tu sesión ha expirado o no tienes permisos para acceder.</p>
-          <button onClick={() => navigate("/login")} className="btn-primary">
+          <button
+            onClick={() => navigate("/login")}
+            className="admin-btn-primary"
+          >
             Ir al Login
           </button>
         </div>
@@ -219,41 +222,45 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="dashboard-container">
+    <div className="admin-dashboard">
       {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-left">
-          <h1>🛡️ SafePick Admin</h1>
-          <span className="user-badge admin">Administrador</span>
-          <span className="user-name">{user?.name}</span>
-        </div>
-        <div className="header-right">
-          <button
-            onClick={() => {
-              logout();
-              navigate("/login");
-            }}
-            className="btn-logout"
-          >
-            Cerrar sesión
-          </button>
+      <header className="admin-header">
+        <div className="admin-header-content">
+          <div className="admin-header-left">
+            <h1>🛡️ SafePick Admin</h1>
+            <span className="admin-role-badge">Administrador</span>
+            <span className="admin-user-name">{user?.name}</span>
+          </div>
+          <div className="admin-header-right">
+            <button
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+              className="admin-btn-logout"
+            >
+              Cerrar sesión
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Alerts */}
-      {error && <div className="alert alert-error">{error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
+      {error && <div className="admin-alert admin-alert-error">{error}</div>}
+      {success && (
+        <div className="admin-alert admin-alert-success">{success}</div>
+      )}
 
       {/* Tabs */}
-      <div className="tabs-container">
+      <div className="admin-tabs">
         <button
-          className={`tab-btn ${activeTab === "gestores" ? "active" : ""}`}
+          className={`admin-tab ${activeTab === "gestores" ? "active" : ""}`}
           onClick={() => setActiveTab("gestores")}
         >
           👥 Gestores
         </button>
         <button
-          className={`tab-btn ${activeTab === "institutions" ? "active" : ""}`}
+          className={`admin-tab ${activeTab === "institutions" ? "active" : ""}`}
           onClick={() => setActiveTab("institutions")}
         >
           🏫 Instituciones
@@ -261,26 +268,26 @@ export default function AdminDashboard() {
       </div>
 
       {loading ? (
-        <div className="loading-state">
+        <div className="admin-loading">
           <p>Cargando datos...</p>
         </div>
       ) : (
-        <div className="dashboard-content">
+        <div className="admin-content">
           {/* Tab: Gestores */}
           {activeTab === "gestores" && (
-            <div className="tab-content">
-              <div className="section-header">
+            <div className="admin-section">
+              <div className="admin-section-header">
                 <h2>Gestión de Gestores</h2>
                 <button
-                  className="btn-primary"
+                  className="admin-btn-primary"
                   onClick={() => setShowCreateGestorModal(true)}
                 >
                   + Nuevo Gestor
                 </button>
               </div>
 
-              <div className="table-container">
-                <table className="data-table">
+              <div className="admin-table-container">
+                <table className="admin-table">
                   <thead>
                     <tr>
                       <th>Nombre</th>
@@ -295,7 +302,7 @@ export default function AdminDashboard() {
                   <tbody>
                     {gestores.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="no-data">
+                        <td colSpan="7" className="admin-no-data">
                           No hay gestores registrados
                         </td>
                       </tr>
@@ -308,19 +315,21 @@ export default function AdminDashboard() {
                           <td>{gestor.phone || "-"}</td>
                           <td>
                             {gestor.institution?.name || (
-                              <span className="text-muted">Sin asignar</span>
+                              <span className="admin-text-muted">
+                                Sin asignar
+                              </span>
                             )}
                           </td>
                           <td>
                             <span
-                              className={`status-badge ${gestor.isActive ? "active" : "inactive"}`}
+                              className={`admin-status-badge ${gestor.isActive ? "active" : "inactive"}`}
                             >
                               {gestor.isActive ? "Activo" : "Inactivo"}
                             </span>
                           </td>
-                          <td className="actions-cell">
+                          <td className="admin-actions-cell">
                             <button
-                              className="btn-small btn-secondary"
+                              className="admin-btn-small admin-btn-secondary"
                               onClick={() => {
                                 setSelectedUser(gestor);
                                 setShowAssignInstitutionModal(true);
@@ -329,7 +338,7 @@ export default function AdminDashboard() {
                               Asignar Institución
                             </button>
                             <button
-                              className={`btn-small ${gestor.isActive ? "btn-danger" : "btn-success"}`}
+                              className={`admin-btn-small ${gestor.isActive ? "admin-btn-danger" : "admin-btn-success"}`}
                               onClick={() =>
                                 handleToggleUserStatus(
                                   gestor.id,
@@ -351,35 +360,37 @@ export default function AdminDashboard() {
 
           {/* Tab: Instituciones */}
           {activeTab === "institutions" && (
-            <div className="tab-content">
-              <div className="section-header">
+            <div className="admin-section">
+              <div className="admin-section-header">
                 <h2>Gestión de Instituciones</h2>
                 <button
-                  className="btn-primary"
+                  className="admin-btn-primary"
                   onClick={() => setShowCreateInstitutionModal(true)}
                 >
                   + Nueva Institución
                 </button>
               </div>
 
-              <div className="cards-grid">
+              <div className="admin-cards-grid">
                 {institutions.length === 0 ? (
-                  <p className="no-data">No hay instituciones registradas</p>
+                  <p className="admin-no-data">
+                    No hay instituciones registradas
+                  </p>
                 ) : (
                   institutions.map((inst) => (
                     <div
                       key={inst.id}
-                      className={`institution-card ${!inst.isActive ? "inactive" : ""}`}
+                      className={`admin-institution-card ${!inst.isActive ? "inactive" : ""}`}
                     >
-                      <div className="card-header">
+                      <div className="admin-card-header">
                         <h3>{inst.name}</h3>
                         <span
-                          className={`status-badge ${inst.isActive ? "active" : "inactive"}`}
+                          className={`admin-status-badge ${inst.isActive ? "active" : "inactive"}`}
                         >
                           {inst.isActive ? "Activa" : "Inactiva"}
                         </span>
                       </div>
-                      <div className="card-body">
+                      <div className="admin-card-body">
                         <p>
                           <strong>📍 Dirección:</strong>{" "}
                           {inst.address || "No especificada"}
@@ -392,14 +403,14 @@ export default function AdminDashboard() {
                           <strong>📧 Email:</strong>{" "}
                           {inst.email || "No especificado"}
                         </p>
-                        <div className="card-stats">
+                        <div className="admin-card-stats">
                           <span>👥 {inst.totalUsers || 0} usuarios</span>
                           <span>👶 {inst.totalChildren || 0} niños</span>
                         </div>
                       </div>
-                      <div className="card-actions">
+                      <div className="admin-card-actions">
                         <button
-                          className={`btn-small ${inst.isActive ? "btn-danger" : "btn-success"}`}
+                          className={`admin-btn-small ${inst.isActive ? "admin-btn-danger" : "admin-btn-success"}`}
                           onClick={() =>
                             handleToggleInstitutionStatus(
                               inst.id,
@@ -422,21 +433,24 @@ export default function AdminDashboard() {
       {/* Modal: Crear Gestor */}
       {showCreateGestorModal && (
         <div
-          className="modal-overlay"
+          className="admin-modal-overlay"
           onClick={() => setShowCreateGestorModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+          <div
+            className="admin-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="admin-modal-header">
               <h2>Crear Nuevo Gestor</h2>
               <button
-                className="modal-close"
+                className="admin-modal-close"
                 onClick={() => setShowCreateGestorModal(false)}
               >
                 ×
               </button>
             </div>
-            <form onSubmit={handleCreateGestor} className="modal-form">
-              <div className="form-group">
+            <form onSubmit={handleCreateGestor} className="admin-modal-form">
+              <div className="admin-form-group">
                 <label>Nombre completo *</label>
                 <input
                   type="text"
@@ -448,7 +462,7 @@ export default function AdminDashboard() {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="admin-form-group">
                 <label>Email *</label>
                 <input
                   type="email"
@@ -460,7 +474,7 @@ export default function AdminDashboard() {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="admin-form-group">
                 <label>Contraseña *</label>
                 <input
                   type="password"
@@ -475,8 +489,8 @@ export default function AdminDashboard() {
                   Incluir mayúsculas, minúsculas, números y símbolos
                 </small>
               </div>
-              <div className="form-row">
-                <div className="form-group">
+              <div className="admin-form-row">
+                <div className="admin-form-group">
                   <label>Cédula</label>
                   <input
                     type="text"
@@ -491,7 +505,7 @@ export default function AdminDashboard() {
                     maxLength={13}
                   />
                 </div>
-                <div className="form-group">
+                <div className="admin-form-group">
                   <label>Teléfono</label>
                   <input
                     type="text"
@@ -503,7 +517,7 @@ export default function AdminDashboard() {
                   />
                 </div>
               </div>
-              <div className="form-group">
+              <div className="admin-form-group">
                 <label>Institución</label>
                 <select
                   value={gestorForm.institutionId}
@@ -524,15 +538,15 @@ export default function AdminDashboard() {
                     ))}
                 </select>
               </div>
-              <div className="modal-actions">
+              <div className="admin-modal-actions">
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="admin-btn-secondary"
                   onClick={() => setShowCreateGestorModal(false)}
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="admin-btn-primary">
                   Crear Gestor
                 </button>
               </div>
@@ -544,21 +558,27 @@ export default function AdminDashboard() {
       {/* Modal: Crear Institución */}
       {showCreateInstitutionModal && (
         <div
-          className="modal-overlay"
+          className="admin-modal-overlay"
           onClick={() => setShowCreateInstitutionModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+          <div
+            className="admin-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="admin-modal-header">
               <h2>Crear Nueva Institución</h2>
               <button
-                className="modal-close"
+                className="admin-modal-close"
                 onClick={() => setShowCreateInstitutionModal(false)}
               >
                 ×
               </button>
             </div>
-            <form onSubmit={handleCreateInstitution} className="modal-form">
-              <div className="form-group">
+            <form
+              onSubmit={handleCreateInstitution}
+              className="admin-modal-form"
+            >
+              <div className="admin-form-group">
                 <label>Nombre de la institución *</label>
                 <input
                   type="text"
@@ -573,7 +593,7 @@ export default function AdminDashboard() {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="admin-form-group">
                 <label>Dirección</label>
                 <input
                   type="text"
@@ -587,8 +607,8 @@ export default function AdminDashboard() {
                   placeholder="Av. Principal 123"
                 />
               </div>
-              <div className="form-row">
-                <div className="form-group">
+              <div className="admin-form-row">
+                <div className="admin-form-group">
                   <label>Teléfono</label>
                   <input
                     type="text"
@@ -602,7 +622,7 @@ export default function AdminDashboard() {
                     placeholder="+34911234567"
                   />
                 </div>
-                <div className="form-group">
+                <div className="admin-form-group">
                   <label>Email</label>
                   <input
                     type="email"
@@ -617,15 +637,15 @@ export default function AdminDashboard() {
                   />
                 </div>
               </div>
-              <div className="modal-actions">
+              <div className="admin-modal-actions">
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="admin-btn-secondary"
                   onClick={() => setShowCreateInstitutionModal(false)}
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="admin-btn-primary">
                   Crear Institución
                 </button>
               </div>
@@ -637,43 +657,46 @@ export default function AdminDashboard() {
       {/* Modal: Asignar Institución */}
       {showAssignInstitutionModal && selectedUser && (
         <div
-          className="modal-overlay"
+          className="admin-modal-overlay"
           onClick={() => setShowAssignInstitutionModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
+          <div
+            className="admin-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="admin-modal-header">
               <h2>Asignar Institución</h2>
               <button
-                className="modal-close"
+                className="admin-modal-close"
                 onClick={() => setShowAssignInstitutionModal(false)}
               >
                 ×
               </button>
             </div>
-            <div className="modal-body">
+            <div className="admin-modal-body">
               <p>
                 Asignar institución a: <strong>{selectedUser.name}</strong>
               </p>
-              <div className="institution-list">
+              <div className="admin-institution-list">
                 {institutions
                   .filter((i) => i.isActive)
                   .map((inst) => (
                     <button
                       key={inst.id}
-                      className={`institution-option ${selectedUser.institutionId === inst.id ? "selected" : ""}`}
+                      className={`admin-institution-option ${selectedUser.institutionId === inst.id ? "selected" : ""}`}
                       onClick={() => handleAssignInstitution(inst.id)}
                     >
-                      <span className="inst-name">{inst.name}</span>
-                      <span className="inst-stats">
+                      <span className="admin-inst-name">{inst.name}</span>
+                      <span className="admin-inst-stats">
                         {inst.totalUsers || 0} usuarios
                       </span>
                     </button>
                   ))}
               </div>
             </div>
-            <div className="modal-actions">
+            <div className="admin-modal-actions">
               <button
-                className="btn-secondary"
+                className="admin-btn-secondary"
                 onClick={() => setShowAssignInstitutionModal(false)}
               >
                 Cerrar
