@@ -53,8 +53,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 600px;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .sp-header-content {
+    max-width: 600px;
+    padding: 0;
+  }
 }
 
 .sp-header-info {
@@ -137,12 +145,19 @@
 
 /* Main Content */
 .sp-main {
-  padding: 16px;
-  max-width: 600px;
+  padding: 20px;
+  max-width: 1400px;
   margin: 0 auto;
   padding-bottom: 80px;
   width: 100%;
   box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .sp-main {
+    padding: 16px;
+    max-width: 600px;
+  }
 }
 
 /* Alerts */
@@ -289,9 +304,30 @@
 
 /* Cards */
 .sp-cards-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .sp-cards-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sp-cards-list {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .sp-cards-list {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+  }
 }
 
 .sp-card {

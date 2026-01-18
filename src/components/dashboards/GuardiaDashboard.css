@@ -13,9 +13,15 @@
 /* Header */
 .gd-header {
   width: 100%;
-  max-width: 420px;
+  max-width: 1400px;
   background: transparent;
   margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .gd-header {
+    max-width: 420px;
+  }
 }
 
 .gd-header-content {
@@ -85,9 +91,15 @@
 /* Main */
 .gd-main {
   width: 100%;
-  max-width: 420px;
+  max-width: 1400px;
   padding-bottom: 40px;
   position: relative;
+}
+
+@media (max-width: 768px) {
+  .gd-main {
+    max-width: 420px;
+  }
 }
 
 /* Loading Overlay */

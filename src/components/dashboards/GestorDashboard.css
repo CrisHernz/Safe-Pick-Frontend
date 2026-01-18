@@ -13,7 +13,7 @@
 /* Header */
 .gestor-header {
   width: 100%;
-  max-width: 900px;
+  max-width: 1400px;
   background: transparent;
   margin-bottom: 16px;
 }
@@ -85,7 +85,7 @@
 /* Main */
 .gestor-main {
   width: 100%;
-  max-width: 900px;
+  max-width: 1400px;
   padding-bottom: 40px;
 }
 
@@ -300,8 +300,27 @@
 /* Cards Grid */
 .gestor-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+@media (min-width: 768px) {
+  .gestor-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gestor-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (min-width: 1400px) {
+  .gestor-cards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  }
 }
 
 .gestor-card {
