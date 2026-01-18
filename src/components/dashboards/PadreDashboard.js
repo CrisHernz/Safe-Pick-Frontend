@@ -24,9 +24,8 @@ export default function PadreDashboard() {
   const [_qrDataUrl, setQrDataUrl] = useState(""); // eslint-disable-line no-unused-vars
   const [submitting, setSubmitting] = useState(false);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
-  const [telegramBotUsername, _setTelegramBotUsername] = useState(
-    "SafePick_Notifications_bot",
-  );
+  const [telegramBotUsername, _setTelegramBotUsername] =
+    useState("safe_pick_uio_bot");
   const [telegramLinking, setTelegramLinking] = useState(false);
   const [hasTelegram, setHasTelegram] = useState(false);
   const [skipTelegramWarning, setSkipTelegramWarning] = useState(false);
