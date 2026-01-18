@@ -426,11 +426,20 @@ export default function AdminDashboard() {
       {showCreateGestorModal && (
         <div
           className="admin-modal-overlay"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowCreateGestorModal(false)}
+          onKeyDown={(e) =>
+            e.key === "Escape" && setShowCreateGestorModal(false)
+          }
+          aria-label="Cerrar modal"
         >
           <div
             className="admin-modal-content"
+            role="dialog"
+            aria-modal="true"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="admin-modal-header">
               <h2>Crear Nuevo Gestor</h2>
@@ -551,11 +560,20 @@ export default function AdminDashboard() {
       {showCreateInstitutionModal && (
         <div
           className="admin-modal-overlay"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowCreateInstitutionModal(false)}
+          onKeyDown={(e) =>
+            e.key === "Escape" && setShowCreateInstitutionModal(false)
+          }
+          aria-label="Cerrar modal"
         >
           <div
             className="admin-modal-content"
+            role="dialog"
+            aria-modal="true"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="admin-modal-header">
               <h2>Crear Nueva Institución</h2>
@@ -650,11 +668,20 @@ export default function AdminDashboard() {
       {showAssignInstitutionModal && selectedUser && (
         <div
           className="admin-modal-overlay"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowAssignInstitutionModal(false)}
+          onKeyDown={(e) =>
+            e.key === "Escape" && setShowAssignInstitutionModal(false)
+          }
+          aria-label="Cerrar modal"
         >
           <div
             className="admin-modal-content"
+            role="dialog"
+            aria-modal="true"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="admin-modal-header">
               <h2>Asignar Institución</h2>

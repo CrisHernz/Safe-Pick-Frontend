@@ -412,11 +412,20 @@ export default function GestorDashboard() {
       {showCreateGuardianModal && (
         <div
           className="gestor-modal-overlay"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowCreateGuardianModal(false)}
+          onKeyDown={(e) =>
+            e.key === "Escape" && setShowCreateGuardianModal(false)
+          }
+          aria-label="Cerrar modal"
         >
           <div
             className="gestor-modal-content"
+            role="dialog"
+            aria-modal="true"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="gestor-modal-header">
               <h2>Crear Nuevo Guardia</h2>
@@ -522,11 +531,20 @@ export default function GestorDashboard() {
       {showAssignChildModal && selectedParent && (
         <div
           className="gestor-modal-overlay"
+          role="button"
+          tabIndex={0}
           onClick={() => setShowAssignChildModal(false)}
+          onKeyDown={(e) =>
+            e.key === "Escape" && setShowAssignChildModal(false)
+          }
+          aria-label="Cerrar modal"
         >
           <div
             className="gestor-modal-content"
+            role="dialog"
+            aria-modal="true"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="gestor-modal-header">
               <h2>Agregar Hijo</h2>
