@@ -15,6 +15,7 @@ import {
   GuardiaDashboard,
   AdminEscolarDashboard,
   AdminDashboard,
+  GestorDashboard,
 } from "./components/dashboards";
 import { AuthProvider } from "./context/AuthContext";
 
@@ -34,6 +35,7 @@ function App() {
           <Route path="/dashboard/padre" element={<PadreDashboard />} />
           <Route path="/dashboard/encargado" element={<EncargadoDashboard />} />
           <Route path="/dashboard/guardia" element={<GuardiaDashboard />} />
+          <Route path="/dashboard/gestor" element={<GestorDashboard />} />
           <Route
             path="/dashboard/admin-escolar"
             element={<AdminEscolarDashboard />}

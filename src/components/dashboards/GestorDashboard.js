@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import apiService from "../../services/api.service";
 import {
@@ -11,11 +12,13 @@ import "./Dashboard.css";
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/;
 
 export default function GestorDashboard() {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("guardians");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [unauthorized, setUnauthorized] = useState(false);
 
   // Estados para guardias
   const [guardians, setGuardians] = useState([]);
@@ -53,11 +56,17 @@ export default function GestorDashboard() {
       setGuardians(guardiansData || []);
       setParents(parentsData || []);
     } catch (err) {
-      setError("Error al cargar datos: " + err.message);
+      // Si es error de autorización, mostrar pantalla de no autorizado
+      if (err.message === "Unauthorized" || err.message?.includes("401") || err.message?.includes("No autorizado")) {
+        setUnauthorized(true);
+        logout(); // Limpiar sesión
+      } else {
+        setError("Error al cargar datos: " + err.message);
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     loadData();
@@ -186,6 +195,21 @@ export default function GestorDashboard() {
     "3° Secundaria",
   ];
 
+  // Si no está autorizado, redirigir al login
+  if (unauthorized) {
+    return (
+      <div className="dashboard-container">
+        <div className="unauthorized-screen">
+          <h2>⚠️ Sesión Expirada</h2>
+          <p>Tu sesión ha expirado o no tienes permisos para acceder.</p>
+          <button onClick={() => navigate("/login")} className="btn-primary">
+            Ir al Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-container">
       {/* Header */}
@@ -196,7 +220,7 @@ export default function GestorDashboard() {
         </div>
         <div className="header-right">
           <span className="user-name">{user?.name}</span>
-          <button onClick={logout} className="btn-logout">
+          <button onClick={() => { logout(); navigate("/login"); }} className="btn-logout">
             Cerrar sesión
           </button>
         </div>

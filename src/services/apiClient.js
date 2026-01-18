@@ -15,7 +15,9 @@ class ApiClient {
       ...options.headers,
     };
 
-    if (token) {
+    // No enviar token en endpoints de autenticación
+    const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register');
+    if (token && !isAuthEndpoint) {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
@@ -49,6 +51,12 @@ class ApiClient {
     }
 
     if (error.status === 401) {
+      // Verificar si es un error de credenciales inválidas
+      if (error.data?.message === "Invalid credentials") {
+        const credentialsError = new Error("Credenciales inválidas. Verifica tu email y contraseña");
+        credentialsError.type = "CREDENTIALS_ERROR";
+        return credentialsError;
+      }
       // Token expirado o no autorizado
       localStorage.removeItem("token");
       const authError = new Error(

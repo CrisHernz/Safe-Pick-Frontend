@@ -27,10 +27,15 @@ function Login() {
         navigate("/dashboard/guardia");
       } else if (response.role === "ADMIN") {
         navigate("/dashboard/admin");
+      } else if (response.role === "GESTOR") {
+        navigate("/dashboard/gestor");
       } else if (response.role === "PARENT") {
         navigate("/dashboard/padre");
       } else {
-        navigate("/dashboard/padre"); // Default
+        // Rol no reconocido - mostrar error
+        setError(`El rol "${response.role || 'desconocido'}" no está registrado correctamente en el sistema. Por favor, contacte con soporte técnico.`);
+        setLoading(false);
+        return;
       }
     } catch (err) {
       setError(err.message || "Error de conexión con el servidor");

@@ -2,7 +2,7 @@
  * Servicio centralizado para comunicación con el API
  */
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
 class ApiService {
   /**
@@ -44,7 +44,7 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error(`API Error [${method} ${endpoint}]:`, error);
+      // No mostrar detalles de endpoints en consola por seguridad
       throw error;
     }
   }
