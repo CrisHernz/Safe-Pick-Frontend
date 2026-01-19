@@ -481,18 +481,20 @@ export default function GestorDashboard() {
               </div>
               <div className="gestor-form-row">
                 <div className="gestor-form-group">
-                  <label>Cédula</label>
+                  <label>Cédula (10 dígitos)</label>
                   <input
                     type="text"
                     value={guardianForm.cedula}
                     onChange={(e) =>
                       setGuardianForm({
                         ...guardianForm,
-                        cedula: e.target.value.replace(/\D/g, ""),
+                        cedula: e.target.value.replace(/\D/g, "").slice(0, 10),
                       })
                     }
-                    placeholder="12345678"
-                    maxLength={13}
+                    placeholder="1712345678"
+                    maxLength={10}
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
                   />
                 </div>
                 <div className="gestor-form-group">

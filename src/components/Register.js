@@ -1,3 +1,30 @@
+/**
+ * @fileoverview Componente de Registro de Usuarios
+ * @module components/Register
+ * @security USER_REGISTRATION - Registro seguro de nuevos usuarios
+ *
+ * @description
+ * Componente React para el registro de nuevos usuarios (padres de familia).
+ * Implementa validaciones de seguridad en cliente y servidor.
+ *
+ * ## Seguridad Implementada:
+ * - Validación de contraseña OWASP (12+ caracteres, complejidad)
+ * - Validación de cédula ecuatoriana (algoritmo módulo 10)
+ * - Validación de teléfono ecuatoriano (formatos nacionales)
+ * - Confirmación de contraseña antes de envío
+ * - Autocompletado seguro de instituciones (debounce)
+ * - Mensajes de error no revelan información sensible
+ *
+ * ## Política de Contraseñas:
+ * - Mínimo 12 caracteres
+ * - Al menos 1 mayúscula
+ * - Al menos 1 minúscula
+ * - Al menos 1 número
+ * - Al menos 1 carácter especial (@$!%*?&)
+ *
+ * @see AuthContext - Contexto de autenticación
+ * @see ecuadorValidation - Funciones de validación
+ */
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -10,8 +37,22 @@ import {
 } from "../utils/ecuadorValidation";
 import "./Register.css";
 
+/**
+ * Expresión regular para validación de contraseña según OWASP
+ * @security Requiere: mayúscula, minúscula, número, carácter especial, 12+ chars
+ */
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{12,}$/;
 
+/**
+ * Componente de formulario de registro
+ *
+ * @returns {JSX.Element} Formulario de registro con validaciones
+ *
+ * @security
+ * - Validaciones en cliente antes de envío
+ * - Doble validación en servidor (backend)
+ * - Búsqueda de instituciones con debounce (previene DoS)
+ */
 function Register() {
   const navigate = useNavigate();
   const { register, loading, error, clearError } = useAuth();
@@ -209,20 +250,24 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="cedula">Cédula</label>
+            <label htmlFor="cedula">Cédula (10 dígitos)</label>
             <input
               id="cedula"
               name="cedula"
               type="text"
               value={formData.cedula}
               onChange={(event) => {
-                const onlyDigits = event.target.value.replace(/\D/g, "");
+                const onlyDigits = event.target.value
+                  .replace(/\D/g, "")
+                  .slice(0, 10);
                 handleChange({ target: { name: "cedula", value: onlyDigits } });
               }}
-              placeholder="12345678"
+              placeholder="1712345678"
               disabled={loading}
               required
-              maxLength={13}
+              maxLength={10}
+              inputMode="numeric"
+              pattern="[0-9]{10}"
             />
             {validationErrors.cedula && (
               <span className="error-message">{validationErrors.cedula}</span>

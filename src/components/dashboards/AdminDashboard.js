@@ -492,18 +492,20 @@ export default function AdminDashboard() {
               </div>
               <div className="admin-form-row">
                 <div className="admin-form-group">
-                  <label>Cédula</label>
+                  <label>Cédula (10 dígitos)</label>
                   <input
                     type="text"
                     value={gestorForm.cedula}
                     onChange={(e) =>
                       setGestorForm({
                         ...gestorForm,
-                        cedula: e.target.value.replace(/\D/g, ""),
+                        cedula: e.target.value.replace(/\D/g, "").slice(0, 10),
                       })
                     }
-                    placeholder="12345678"
-                    maxLength={13}
+                    placeholder="1712345678"
+                    maxLength={10}
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
                   />
                 </div>
                 <div className="admin-form-group">
