@@ -1,12 +1,60 @@
-// Servicio de Autenticación
+/**
+ * @fileoverview Servicio de Autenticación del Frontend
+ * @module services/authService
+ * @security AUTHENTICATION - Gestión de sesiones y tokens en el cliente
+ *
+ * @description
+ * Servicio que maneja toda la lógica de autenticación del lado del cliente:
+ * - Registro de nuevos usuarios
+ * - Login con email y contraseña
+ * - Gestión del token JWT en localStorage
+ * - Verificación del estado de autenticación
+ * - Verificación de roles de usuario
+ *
+ * ## Seguridad Implementada:
+ * - Token JWT almacenado en localStorage
+ * - Limpieza completa de datos al hacer logout
+ * - Verificación de roles para control de acceso en UI
+ * - No se almacenan contraseñas en el cliente
+ *
+ * ## Almacenamiento Local:
+ * - `token`: JWT para autenticación de peticiones
+ * - `user`: Objeto JSON con datos del usuario (sin password)
+ *
+ * ## Consideraciones de Seguridad:
+ * - localStorage es vulnerable a XSS, pero protegido por CSP
+ * - En producción considerar httpOnly cookies para mayor seguridad
+ * - Token tiene expiración configurada en el backend
+ *
+ * @see AuthContext - Contexto React que usa este servicio
+ * @see apiClient - Cliente HTTP para las peticiones
+ */
 import apiClient from "./apiClient";
 import { API_ENDPOINTS } from "../config/api";
 
+/**
+ * Objeto de servicio de autenticación
+ * @namespace
+ */
 export const authService = {
   /**
-   * Registra un nuevo usuario
-   * @param {Object} userData - Datos del usuario
-   * @returns {Promise<Object>} Usuario creado y token
+   * Registra un nuevo usuario en el sistema
+   *
+   * @param {Object} userData - Datos del usuario a registrar
+   * @param {string} userData.email - Email único del usuario
+   * @param {string} userData.password - Contraseña (mínimo 12 caracteres con requisitos)
+   * @param {string} userData.name - Nombre completo
+   * @param {string} [userData.role="PARENT"] - Rol del usuario
+   * @param {string} [userData.cedula] - Cédula ecuatoriana (10 dígitos)
+   * @param {string} [userData.phone] - Teléfono en formato ecuatoriano
+   * @param {string} [userData.institutionId] - ID de la institución
+   * @returns {Promise<Object>} Usuario creado con token JWT
+   * @throws {Error} Si el registro falla
+   *
+   * @security
+   * - Contraseña enviada via HTTPS, nunca almacenada localmente
+   * - Token guardado inmediatamente tras registro exitoso
+   * - Datos del usuario (sin password) guardados en localStorage
    */
   async register(userData) {
     try {
@@ -32,10 +80,18 @@ export const authService = {
   },
 
   /**
-   * Inicia sesión con email y contraseña
+   * Autentica un usuario con email y contraseña
+   *
    * @param {string} email - Email del usuario
-   * @param {string} password - Contraseña del usuario
-   * @returns {Promise<Object>} Datos del usuario y token
+   * @param {string} password - Contraseña en texto plano
+   * @returns {Promise<Object>} Datos del usuario autenticado con token
+   * @throws {Error} Si las credenciales son inválidas
+   *
+   * @security
+   * - Credenciales enviadas via HTTPS
+   * - Token JWT guardado en localStorage tras login exitoso
+   * - Password nunca almacenado localmente
+   * - Mensaje de error genérico para evitar enumeración
    */
   async login(email, password) {
     try {
@@ -56,7 +112,12 @@ export const authService = {
   },
 
   /**
-   * Cierra la sesión actual
+   * Cierra la sesión del usuario actual
+   *
+   * @security
+   * - Elimina token de localStorage
+   * - Elimina datos de usuario de localStorage
+   * - No requiere llamada al backend (JWT es stateless)
    */
   logout() {
     localStorage.removeItem("token");
@@ -64,16 +125,22 @@ export const authService = {
   },
 
   /**
-   * Obtiene el token actual
-   * @returns {string|null} Token JWT o null
+   * Obtiene el token JWT almacenado
+   *
+   * @returns {string|null} Token JWT o null si no existe
+   *
+   * @security Token usado para autorización en peticiones HTTP
    */
   getToken() {
     return localStorage.getItem("token");
   },
 
   /**
-   * Obtiene el usuario actual del localStorage
-   * @returns {Object|null} Datos del usuario o null
+   * Obtiene los datos del usuario actual desde localStorage
+   *
+   * @returns {Object|null} Objeto con datos del usuario o null
+   *
+   * @security No incluye password, solo datos públicos del usuario
    */
   getCurrentUser() {
     const user = localStorage.getItem("user");
@@ -81,17 +148,23 @@ export const authService = {
   },
 
   /**
-   * Verifica si el usuario está autenticado
-   * @returns {boolean} True si está autenticado
+   * Verifica si hay un usuario autenticado
+   *
+   * @returns {boolean} true si existe un token almacenado
+   *
+   * @security Solo verifica existencia de token, no su validez
    */
   isAuthenticated() {
     return !!this.getToken();
   },
 
   /**
-   * Verifica si el usuario tiene un rol específico
-   * @param {string} role - Rol a verificar
-   * @returns {boolean} True si el usuario tiene ese rol
+   * Verifica si el usuario actual tiene un rol específico
+   *
+   * @param {string} role - Rol a verificar (ADMIN, GESTOR, GUARDIAN, PARENT)
+   * @returns {boolean} true si el usuario tiene el rol especificado
+   *
+   * @security Usado para renderizado condicional en UI
    */
   hasRole(role) {
     const user = this.getCurrentUser();
