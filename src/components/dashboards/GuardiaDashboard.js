@@ -1,9 +1,50 @@
+/**
+ * @fileoverview Dashboard del Guardia de Seguridad
+ * @module components/dashboards/GuardiaDashboard
+ * @security QR_VALIDATION - Escaneo y validación de códigos QR de retiro
+ *
+ * @description
+ * Interfaz principal para guardias de seguridad. Permite escanear códigos QR
+ * de retiro y completar el proceso de entrega de niños.
+ *
+ * ## Flujo de Operación:
+ * 1. Guardia inicia escáner de cámara
+ * 2. Escanea QR presentado por picker
+ * 3. Sistema valida QR con backend (clave de descifrado en servidor)
+ * 4. Muestra datos del niño y picker para verificación visual
+ * 5. Guardia confirma identidad del picker (cédula física)
+ * 6. Sistema completa retiro y envía notificación al padre
+ *
+ * ## Seguridad Implementada:
+ * - QR se valida en backend (no en cliente)
+ * - Token JWT requerido para todas las operaciones
+ * - Verificación visual de cédula obligatoria
+ * - Datos sensibles no se almacenan en cliente
+ * - Escáner se detiene automáticamente tras escaneo
+ * - Errores de librería QR silenciados (no exponen info)
+ *
+ * @see WithdrawalService.validateQrCode - Validación en backend
+ * @see WithdrawalService.scanQrAndComplete - Completado de retiro
+ */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Html5QrcodeScanner, Html5QrcodeScanType } from "html5-qrcode";
 import { API_CONFIG } from "../../config/api";
 import { useNavigate } from "react-router-dom";
 import "./GuardiaDashboard.css";
 
+/**
+ * Componente de dashboard para guardias de seguridad
+ *
+ * Estados del flujo:
+ * - idle: Esperando iniciar escaneo
+ * - scanning: Cámara activa buscando QR
+ * - validating: QR encontrado, validando con backend
+ * - verified: QR válido, esperando confirmación de identidad
+ * - completed: Retiro completado exitosamente
+ * - error: Error en algún paso del proceso
+ *
+ * @returns {JSX.Element} Dashboard con escáner QR y flujo de validación
+ */
 function GuardDashboard() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");

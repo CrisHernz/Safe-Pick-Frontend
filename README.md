@@ -1,70 +1,158 @@
-# Getting Started with Create React App
+# SafePick Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Interfaz de usuario para el sistema de retiro escolar seguro SafePick.
 
-## Available Scripts
+## 🎯 Funcionalidad Principal
 
-In the project directory, you can run:
+Aplicación React que proporciona interfaces para cada rol del sistema:
 
-### `npm start`
+- **Login/Registro** - Autenticación de usuarios y pickers temporales
+- **Dashboard Padre** - Crear órdenes de retiro y generar credenciales
+- **Dashboard Guardia** - Escanear QR y completar retiros
+- **Dashboard Gestor** - Administrar guardias y padres de su institución
+- **Dashboard Admin** - Gestión global de instituciones y gestores
+- **Dashboard Picker** - Ver orden asignada y código QR
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🛠️ Tecnologías
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- React 18
+- React Router DOM
+- Context API (AuthContext)
+- html5-qrcode (escáner)
+- qrcode (generación)
 
-### `npm test`
+## ⚡ Instalación
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+# Instalar dependencias
+npm install
 
-### `npm run build`
+# Configurar API URL (opcional)
+# Por defecto apunta a http://localhost:3001
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🚀 Ejecución
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+# Desarrollo
+npm start
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# Build producción
+npm run build
 
-### `npm run eject`
+# Servir build local
+npx serve -s build
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 📱 Rutas de la Aplicación
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+| Ruta                 | Descripción        | Acceso   |
+| -------------------- | ------------------ | -------- |
+| `/`                  | Login principal    | Público  |
+| `/register`          | Registro de padres | Público  |
+| `/picker-login`      | Login de pickers   | Público  |
+| `/dashboard/padre`   | Panel del padre    | PARENT   |
+| `/dashboard/guardia` | Panel del guardia  | GUARDIAN |
+| `/dashboard/gestor`  | Panel del gestor   | GESTOR   |
+| `/dashboard/admin`   | Panel del admin    | ADMIN    |
+| `/picker-dashboard`  | Panel del picker   | PICKER   |
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🔐 Flujos de Usuario
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Padre de Familia
 
-## Learn More
+1. Inicia sesión con email y contraseña
+2. Ve lista de hijos registrados
+3. Crea orden de retiro seleccionando hijo y picker
+4. Genera credenciales (cédula + código de 6 dígitos)
+5. Comparte credenciales con el picker
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Picker (Encargado Temporal)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Recibe cédula y código del padre
+2. Ingresa en `/picker-login`
+3. Ve su código QR en el dashboard
+4. Presenta QR al guardia en la escuela
 
-### Code Splitting
+### Guardia
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. Inicia sesión con credenciales institucionales
+2. Activa escáner de cámara
+3. Escanea QR del picker
+4. Verifica cédula física del picker
+5. Confirma y completa el retiro
 
-### Analyzing the Bundle Size
+### Gestor
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+1. Administra guardias de su institución
+2. Ve padres y niños registrados
+3. Puede crear nuevos guardias
 
-### Making a Progressive Web App
+### Admin
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Gestiona todas las instituciones
+2. Crea y asigna gestores
+3. Ve estadísticas globales
 
-### Advanced Configuration
+## 🔒 Seguridad Implementada
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- ✅ Token JWT almacenado en localStorage
+- ✅ AuthContext para estado de autenticación
+- ✅ Validación de cédula ecuatoriana en cliente
+- ✅ Inputs de cédula limitados a 10 dígitos
+- ✅ Validación de contraseña OWASP (12+ chars)
+- ✅ Mensajes de error genéricos
+- ✅ Redirección por rol tras login
 
-### Deployment
+## 📦 Estructura de Carpetas
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
+src/
+├── components/
+│   ├── Login.js           # Login principal
+│   ├── Register.js        # Registro de padres
+│   ├── PickerLogin.js     # Login de pickers
+│   ├── PickerDashboard.js # Dashboard picker
+│   └── dashboards/
+│       ├── PadreDashboard.js
+│       ├── GuardiaDashboard.js
+│       ├── GestorDashboard.js
+│       └── AdminDashboard.js
+├── context/
+│   └── AuthContext.js     # Estado de autenticación
+├── services/
+│   ├── api.service.js     # Cliente HTTP
+│   └── authService.js     # Servicios de auth
+├── utils/
+│   └── ecuadorValidation.js # Validaciones EC
+└── config/
+    └── api.js             # Configuración API
+```
 
-### `npm run build` fails to minify
+## 🌐 Despliegue
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Vercel (Recomendado)
+
+1. Conectar repositorio en vercel.com
+2. Configurar variable `REACT_APP_API_URL`
+3. Deploy automático en cada push
+
+### Manual
+
+```bash
+npm run build
+# Subir carpeta /build a servidor estático
+```
+
+## 👤 Credenciales de Prueba
+
+Contraseña para todos: `Password123!`
+
+- **Admin:** admin@safepick.com
+- **Gestor:** gestor.sanjose@safepick.com
+- **Guardia:** guardia1@sanjose.edu.ec
+- **Padre:** cristian.hernandez@gmail.com
+
+---
+
+**Puerto por defecto:** 3000
