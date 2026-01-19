@@ -1,9 +1,55 @@
+/**
+ * @fileoverview Dashboard del Picker (Encargado Temporal)
+ * @module components/PickerDashboard
+ * @security PICKER_ACCESS - Interfaz de acceso temporal para encargados
+ *
+ * @description
+ * Dashboard para usuarios temporales (pickers) que han sido autorizados
+ * por un padre para retirar a un niño específico.
+ *
+ * ## Funcionalidades:
+ * - Visualización de datos de la orden asignada
+ * - Generación y display de código QR para escaneo
+ * - Información del niño a retirar
+ * - Estado actual de la orden (PENDING, VALIDATED, COMPLETED)
+ * - Tiempo de expiración de credenciales
+ *
+ * ## Seguridad Implementada:
+ * - Token JWT temporal con acceso limitado (solo su orden)
+ * - Redirección automática si token inválido/expirado
+ * - QR solo visible cuando orden está VALIDATED
+ * - Auto-refresh cada 30s para detectar cambios de estado
+ * - Logout limpia todos los datos de localStorage
+ * - No muestra información de otros usuarios/órdenes
+ *
+ * ## Estados de Orden:
+ * - PENDING: Esperando validación del padre
+ * - VALIDATED: Listo para retirar (QR visible)
+ * - COMPLETED: Retiro completado
+ * - CANCELLED: Orden cancelada por el padre
+ *
+ * @see PickerLogin - Autenticación de pickers
+ * @see WithdrawalService.getPickerOrder - Endpoint de datos
+ */
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_CONFIG } from "../config/api";
 import QRCode from "qrcode";
 import "./PickerDashboard.css";
 
+/**
+ * Dashboard de picker temporal
+ *
+ * Muestra la orden asignada al picker con su código QR.
+ * El QR debe ser presentado al guardia para completar el retiro.
+ *
+ * @returns {JSX.Element} Dashboard con información de orden y QR
+ *
+ * @security
+ * - Verifica token en cada carga
+ * - Redirige a login si sesión inválida
+ * - QR generado en cliente pero datos validados en servidor
+ */
 function PickerDashboard() {
   const navigate = useNavigate();
   const [pickerData, setPickerData] = useState(null);

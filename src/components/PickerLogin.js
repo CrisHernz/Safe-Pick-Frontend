@@ -1,8 +1,43 @@
+/**
+ * @fileoverview Componente de Login para Pickers Temporales
+ * @module components/PickerLogin
+ * @security PICKER_AUTH - Autenticación de encargados temporales
+ *
+ * @description
+ * Componente React para la autenticación de pickers (personas autorizadas
+ * temporalmente para retirar niños). Usa cédula + código OTP.
+ *
+ * ## Seguridad Implementada:
+ * - Input restringido a solo dígitos numéricos
+ * - Código temporal de 6 dígitos (OTP)
+ * - Token JWT temporal con acceso limitado
+ * - Mensaje de error genérico (no revela detalles)
+ * - Autocompletado deshabilitado en campos sensibles
+ *
+ * ## Flujo de Autenticación:
+ * 1. Padre crea orden y genera credenciales
+ * 2. Padre comparte cédula + código al picker
+ * 3. Picker ingresa credenciales en este formulario
+ * 4. Si válido, recibe token JWT temporal
+ * 5. Token expira a las 2PM del día
+ *
+ * @see WithdrawalService.loginPicker - Endpoint de autenticación
+ */
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_CONFIG } from "../config/api";
 import "./PickerLogin.css";
 
+/**
+ * Componente de formulario de login para pickers temporales
+ *
+ * @returns {JSX.Element} Formulario de autenticación picker
+ *
+ * @security
+ * - Solo acepta caracteres numéricos
+ * - autoComplete="off" para prevenir almacenamiento de credenciales
+ * - inputMode="numeric" para teclado numérico en móviles
+ */
 function PickerLogin() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -80,16 +115,26 @@ function PickerLogin() {
               id="cedula"
               name="cedula"
               value={formData.cedula}
-              onChange={handleChange}
-              placeholder="Ej: 1234567890"
+              onChange={(e) => {
+                const onlyDigits = e.target.value
+                  .replace(/\D/g, "")
+                  .slice(0, 10);
+                if (onlyDigits.length <= 10) {
+                  handleChange({
+                    target: { name: "cedula", value: onlyDigits },
+                  });
+                }
+              }}
+              placeholder="1712345678"
               required
               disabled={loading}
-              maxLength="13"
+              maxLength="10"
               inputMode="numeric"
               autoComplete="off"
+              pattern="[0-9]{10}"
             />
             <span className="pkl-hint">
-              Ingrese su número de cédula sin puntos ni guiones
+              Ingrese exactamente 10 dígitos numéricos
             </span>
           </div>
 

@@ -1,12 +1,52 @@
 /**
- * Utilidades de validación para Ecuador
- * Validación de cédula y teléfono ecuatoriano
+ * @fileoverview Utilidades de Validación para Ecuador
+ * @module utils/ecuadorValidation
+ * @security INPUT_VALIDATION - Validación de datos de entrada específicos de Ecuador
+ *
+ * @description
+ * Módulo que proporciona funciones de validación para datos específicos de Ecuador:
+ * - Validación de cédula de identidad ecuatoriana (algoritmo módulo 10)
+ * - Validación de números de teléfono ecuatorianos (fijo y celular)
+ * - Formateo de teléfonos al estándar internacional E.164
+ * - Identificación de provincia por código de cédula
+ *
+ * ## Seguridad Implementada:
+ * - Previene inyección de datos inválidos al backend
+ * - Valida formato antes de enviar al servidor
+ * - Algoritmo oficial del Registro Civil de Ecuador para cédulas
+ * - Regex estrictos para formatos de teléfono
+ *
+ * ## Uso:
+ * ```javascript
+ * import { validateCedulaEcuatoriana, validateTelefonoEcuatoriano } from './ecuadorValidation';
+ *
+ * if (!validateCedulaEcuatoriana(cedula)) {
+ *   setError('Cédula inválida');
+ * }
+ * ```
+ *
+ * @see https://www.registrocivil.gob.ec/ - Registro Civil de Ecuador
  */
 
 /**
- * Valida una cédula ecuatoriana
- * @param {string} cedula - La cédula a validar
- * @returns {boolean} - true si es válida, false si no
+ * Valida una cédula de identidad ecuatoriana
+ *
+ * Implementa el algoritmo oficial del Registro Civil de Ecuador (módulo 10)
+ * para verificar la validez matemática de una cédula.
+ *
+ * @param {string} cedula - Número de cédula a validar (10 dígitos)
+ * @returns {boolean} true si la cédula es válida, false si no
+ *
+ * @security
+ * - Valida longitud exacta de 10 dígitos
+ * - Verifica código de provincia válido (01-24)
+ * - Verifica tercer dígito para personas naturales (<6)
+ * - Aplica algoritmo de dígito verificador
+ *
+ * @example
+ * validateCedulaEcuatoriana('1710034065'); // true
+ * validateCedulaEcuatoriana('0000000000'); // false
+ * validateCedulaEcuatoriana('123'); // false (longitud inválida)
  */
 export const validateCedulaEcuatoriana = (cedula) => {
   if (!cedula) return false;
@@ -28,7 +68,7 @@ export const validateCedulaEcuatoriana = (cedula) => {
     return false;
   }
 
-  // Algoritmo de validación del dígito verificador
+  // Algoritmo de validación del dígito verificador (módulo 10)
   const coeficientes = [2, 1, 2, 1, 2, 1, 2, 1, 2];
   let suma = 0;
 
@@ -48,13 +88,26 @@ export const validateCedulaEcuatoriana = (cedula) => {
 };
 
 /**
- * Valida un teléfono ecuatoriano
- * Formatos aceptados:
- * - +593XXXXXXXXX (código país + 9 dígitos)
- * - 09XXXXXXXX (celular nacional)
- * - 0XXXXXXXXX (fijo nacional)
- * @param {string} telefono - El teléfono a validar
- * @returns {boolean} - true si es válido, false si no
+ * Valida un número de teléfono ecuatoriano
+ *
+ * Soporta múltiples formatos de teléfono de Ecuador:
+ * - Internacional: +593XXXXXXXXX
+ * - Celular nacional: 09XXXXXXXX
+ * - Fijo nacional: 0XXXXXXXXX
+ *
+ * @param {string} telefono - Número de teléfono a validar
+ * @returns {boolean} true si el formato es válido, false si no
+ *
+ * @security
+ * - Regex estrictos que solo aceptan formatos válidos de Ecuador
+ * - Previene inyección de caracteres especiales
+ * - Valida estructura según estándares de telecomunicaciones
+ *
+ * @example
+ * validateTelefonoEcuatoriano('+593991234567'); // true (internacional)
+ * validateTelefonoEcuatoriano('0991234567'); // true (celular)
+ * validateTelefonoEcuatoriano('022123456'); // true (fijo Quito)
+ * validateTelefonoEcuatoriano('123'); // false
  */
 export const validateTelefonoEcuatoriano = (telefono) => {
   if (!telefono) return false;
@@ -76,9 +129,22 @@ export const validateTelefonoEcuatoriano = (telefono) => {
 };
 
 /**
- * Formatea un teléfono al formato internacional ecuatoriano
- * @param {string} telefono - El teléfono a formatear
- * @returns {string} - El teléfono en formato +593XXXXXXXXX
+ * Formatea un teléfono al formato internacional ecuatoriano (E.164)
+ *
+ * Convierte cualquier formato de teléfono ecuatoriano válido
+ * al formato internacional estándar +593XXXXXXXXX.
+ *
+ * @param {string} telefono - Teléfono en cualquier formato
+ * @returns {string} Teléfono en formato +593XXXXXXXXX
+ *
+ * @security
+ * - Sanitiza el input removiendo espacios y guiones
+ * - Normaliza al formato estándar para almacenamiento consistente
+ *
+ * @example
+ * formatTelefonoEcuatoriano('0991234567'); // '+593991234567'
+ * formatTelefonoEcuatoriano('593991234567'); // '+593991234567'
+ * formatTelefonoEcuatoriano('+593991234567'); // '+593991234567' (sin cambio)
  */
 export const formatTelefonoEcuatoriano = (telefono) => {
   if (!telefono) return "";
@@ -110,9 +176,17 @@ export const formatTelefonoEcuatoriano = (telefono) => {
 };
 
 /**
- * Obtiene información de la provincia por el código de cédula
- * @param {string} cedula - La cédula
- * @returns {string} - Nombre de la provincia o "Desconocida"
+ * Obtiene el nombre de la provincia a partir del código de cédula
+ *
+ * Los primeros 2 dígitos de la cédula ecuatoriana indican
+ * la provincia de emisión del documento.
+ *
+ * @param {string} cedula - Número de cédula (mínimo 2 dígitos)
+ * @returns {string} Nombre de la provincia o "Desconocida"
+ *
+ * @example
+ * getProvinciaFromCedula('1710034065'); // 'Pichincha'
+ * getProvinciaFromCedula('0912345678'); // 'Guayas'
  */
 export const getProvinciaFromCedula = (cedula) => {
   if (!cedula || cedula.length < 2) return "Desconocida";
